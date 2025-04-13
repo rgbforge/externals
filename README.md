@@ -7,7 +7,7 @@ Currently tested on:
 
 ## Prerequites for RHEL 8
 
-# Installing prerequistes must be done before enabling the GCC compiler
+Installing prerequistes must be done before enabling the GCC compiler
 ```
 ./install_prerequisites.sh
 ```
