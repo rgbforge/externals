@@ -7,19 +7,25 @@ Currently tested on:
 
 ## Prerequites for RHEL 8
 
-```bash
-dnf install -y sudo git python3 python3-distro
-
-# Installing the prerequistes must be done before enabling the GCC compiler
-# environment.
-./install_prerequisites.py
-
+# Installing prerequistes must be done before enabling the GCC compiler
+```
+./install_prerequisites.sh
+```
 # Enable the GCC 11 compiler tools.
+```
 scl enable gcc-toolset-11 bash
 export IRODS_EXTERNALS_GCC_PREFIX="/opt/rh/gcc-toolset-11/root/usr"
-
-make # or "make server" for packages specific to building the iRODS server.
 ```
+
+```
+make
+```
+
+# or
+
+```make server``` 
+for packages specific to building the iRODS server.
+
 
 # FAQ
 
