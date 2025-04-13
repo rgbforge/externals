@@ -1,0 +1,9 @@
+packages.mk
+*_src
+*.deb
+*.rpm
+*.log
+
+# Python cache
+__pycache__/
+*.py[cod]
