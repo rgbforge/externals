@@ -17,13 +17,10 @@ scl enable gcc-toolset-11 bash
 export IRODS_EXTERNALS_GCC_PREFIX="/opt/rh/gcc-toolset-11/root/usr"
 ```
 
-```
-make
-```
+```make```
  or
  
 ```make server``` 
-
 for packages specific to building the iRODS server.
 
 
