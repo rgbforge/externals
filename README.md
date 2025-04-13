@@ -11,7 +11,7 @@ Installing prerequistes must be done before enabling the GCC compiler
 ```
 ./install_prerequisites.sh
 ```
-# Enable the GCC 11 compiler tools.
+## Enable the GCC 11 compiler tools.
 ```
 scl enable gcc-toolset-11 bash
 export IRODS_EXTERNALS_GCC_PREFIX="/opt/rh/gcc-toolset-11/root/usr"
