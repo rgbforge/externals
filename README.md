@@ -20,9 +20,7 @@ export IRODS_EXTERNALS_GCC_PREFIX="/opt/rh/gcc-toolset-11/root/usr"
 ```
 make
 ```
-
-# or
-
+ or
 ```make server``` 
 for packages specific to building the iRODS server.
 
