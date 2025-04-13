@@ -25,6 +25,8 @@ openssl \
 openssl-devel \
 patch \
 procps \
+python3-distro \
+python3-setuptools \
 python3-devel \
 rpm-build \
 rsync \
