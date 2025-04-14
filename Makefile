@@ -1,48 +1,58 @@
-# Build options:  -v for verbosity ( default: -p to package)
+# Makefile for building external dependencies (libc++ focused)
+
+# Build options: -v for verbosity (default: -p to package)
 BUILD_OPTIONS = -v
 
-# Generate the packages.mk, depends on versions.json and build.sh.
+# Include generated package definitions. Use -include to avoid errors
+# if packages.mk doesn't exist on the very first run.
+# This defines variables like $(AVRO_LIBCXX_PACKAGE).
+-include packages.mk
+
+# Generate the packages.mk file, which defines package-specific variables.
+# Depends on versions.json and build.sh.
 packages.mk: Makefile versions.json build.sh
 	./build.sh packagesfile
 
-# The "all" target requires that packages.mk is generated.
-all: packages.mk
+# The "all" target: This is the main entry point.
+# It now builds the server-libcxx target by default.
+all: packages.mk server-libcxx
 
 # --- Individual Targets ---
+#
+# Structure for each package:
+# 1. $(PACKAGE_VAR): $(DEPENDENCY_PACKAGE_VARS...)
+#    -> This rule defines the actual package file as the target.
+#    -> It lists other *package files* it depends on.
+#    -> The command runs build.sh to create the package file.
+# 2. package-name: $(PACKAGE_VAR)
+#    -> This is the convenience target you type (e.g., make avro-libcxx).
+#    -> It simply depends on the package file being built.
+#
+# The '2>&1 | tee <package>.log' pattern shows output and logs it.
 
-# avro: depends on boost, cmake, and clang; then build using build.sh.
-$(AVRO_PACKAGE): $(BOOST_PACKAGE) $(CMAKE_PACKAGE) $(CLANG_PACKAGE)
-	./build.sh $(BUILD_OPTIONS) avro > avro.log 2>&1
-avro: $(AVRO_PACKAGE)
-
-# avro-libcxx: depends on boost-libcxx, cmake, and clang.
+# --- Avro (libc++ only) ---
 $(AVRO_LIBCXX_PACKAGE): $(BOOST_LIBCXX_PACKAGE) $(CMAKE_PACKAGE) $(CLANG_PACKAGE)
-	./build.sh $(BUILD_OPTIONS) avro-libcxx > avro-libcxx.log 2>&1
+	./build.sh $(BUILD_OPTIONS) avro-libcxx 2>&1 | tee avro-libcxx.log
 avro-libcxx: $(AVRO_LIBCXX_PACKAGE)
 
 avro_clean:
 	@echo "Cleaning avro..."
-	@rm -rf avro*
-	@rm -rf $(AVRO_PACKAGE) $(AVRO_LIBCXX_PACKAGE)
+	@rm -rf avro* # Cleans both potential source dirs
+	@rm -rf $(AVRO_LIBCXX_PACKAGE)
 
-# boost: depends on clang.
-$(BOOST_PACKAGE): $(CLANG_PACKAGE)
-	./build.sh $(BUILD_OPTIONS) boost > boost.log 2>&1
-boost: $(BOOST_PACKAGE)
-
-# boost-libcxx: depends on clang.
+# --- Boost (libc++ only) ---
 $(BOOST_LIBCXX_PACKAGE): $(CLANG_PACKAGE)
-	./build.sh $(BUILD_OPTIONS) boost-libcxx > boost-libcxx.log 2>&1
+	./build.sh $(BUILD_OPTIONS) boost-libcxx 2>&1 | tee boost-libcxx.log
 boost-libcxx: $(BOOST_LIBCXX_PACKAGE)
 
 boost_clean:
 	@echo "Cleaning boost..."
-	@rm -rf boost*
-	@rm -rf $(BOOST_PACKAGE) $(BOOST_LIBCXX_PACKAGE)
+	@rm -rf boost* # Cleans both potential source dirs
+	@rm -rf $(BOOST_LIBCXX_PACKAGE)
 
-# catch2: depends on cmake.
+# --- Catch2 (Common dependency) ---
 $(CATCH2_PACKAGE): $(CMAKE_PACKAGE)
-	./build.sh $(BUILD_OPTIONS) catch2 > catch2.log 2>&1
+	./build.sh $(BUILD_OPTIONS) catch2 2>&1 | tee catch2.log
 catch2: $(CATCH2_PACKAGE)
 
 catch2_clean:
@@ -50,9 +60,9 @@ catch2_clean:
 	@rm -rf catch2*
 	@rm -rf $(CATCH2_PACKAGE)
 
-# clang: depends on cmake.
+# --- Clang (Common dependency) ---
 $(CLANG_PACKAGE): $(CMAKE_PACKAGE)
-	./build.sh $(BUILD_OPTIONS) clang > clang.log 2>&1
+	./build.sh $(BUILD_OPTIONS) clang 2>&1 | tee clang.log
 clang: $(CLANG_PACKAGE)
 
 clang_clean:
@@ -60,9 +70,9 @@ clang_clean:
 	@rm -rf clang*
 	@rm -rf $(CLANG_PACKAGE)
 
-# clang-runtime: depends on clang.
+# --- Clang Runtime (Common dependency) ---
 $(CLANG_RUNTIME_PACKAGE): $(CLANG_PACKAGE)
-	./build.sh $(BUILD_OPTIONS) clang-runtime > clang-runtime.log 2>&1
+	./build.sh $(BUILD_OPTIONS) clang-runtime 2>&1 | tee clang-runtime.log
 clang-runtime: $(CLANG_RUNTIME_PACKAGE)
 
 clang-runtime_clean:
@@ -70,9 +80,9 @@ clang-runtime_clean:
 	@rm -rf clang-runtime*
 	@rm -rf $(CLANG_RUNTIME_PACKAGE)
 
-# cmake:
+# --- CMake (Common dependency) ---
 $(CMAKE_PACKAGE):
-	./build.sh $(BUILD_OPTIONS) cmake > cmake.log 2>&1
+	./build.sh $(BUILD_OPTIONS) cmake 2>&1 | tee cmake.log
 cmake: $(CMAKE_PACKAGE)
 
 cmake_clean:
@@ -80,9 +90,9 @@ cmake_clean:
 	@rm -rf cmake*
 	@rm -rf $(CMAKE_PACKAGE)
 
-# cppzmq: depends on zeromq4_1.
-$(CPPZMQ_PACKAGE): $(ZEROMQ4_1_PACKAGE)
-	./build.sh $(BUILD_OPTIONS) cppzmq > cppzmq.log 2>&1
+# --- CppZMQ (Common dependency) ---
+$(CPPZMQ_PACKAGE): $(ZEROMQ4_1_LIBCXX_PACKAGE) # Depends on the libc++ version of zeromq
+	./build.sh $(BUILD_OPTIONS) cppzmq 2>&1 | tee cppzmq.log
 cppzmq: $(CPPZMQ_PACKAGE)
 
 cppzmq_clean:
@@ -90,24 +100,19 @@ cppzmq_clean:
 	@rm -rf cppzmq*
 	@rm -rf $(CPPZMQ_PACKAGE)
 
-# fmt:
-$(FMT_PACKAGE): $(CLANG_PACKAGE)
-	./build.sh $(BUILD_OPTIONS) fmt > fmt.log 2>&1
-fmt: $(FMT_PACKAGE)
-
-# fmt-libcxx:
+# --- fmt (libc++ only) ---
 $(FMT_LIBCXX_PACKAGE): $(CLANG_PACKAGE)
-	./build.sh $(BUILD_OPTIONS) fmt-libcxx > fmt-libcxx.log 2>&1
+	./build.sh $(BUILD_OPTIONS) fmt-libcxx 2>&1 | tee fmt-libcxx.log
 fmt-libcxx: $(FMT_LIBCXX_PACKAGE)
 
 fmt_clean:
 	@echo "Cleaning fmt..."
-	@rm -rf fmt*
-	@rm -rf $(FMT_PACKAGE) $(FMT_LIBCXX_PACKAGE)
+	@rm -rf fmt* # Cleans both potential source dirs
+	@rm -rf $(FMT_LIBCXX_PACKAGE)
 
-# json:
+# --- JSON (Common dependency) ---
 $(JSON_PACKAGE): $(CMAKE_PACKAGE)
-	./build.sh $(BUILD_OPTIONS) json > json.log 2>&1
+	./build.sh $(BUILD_OPTIONS) json 2>&1 | tee json.log
 json: $(JSON_PACKAGE)
 
 json_clean:
@@ -115,9 +120,9 @@ json_clean:
 	@rm -rf json*
 	@rm -rf $(JSON_PACKAGE)
 
-# jsoncons:
+# --- JSONCONS (Common dependency) ---
 $(JSONCONS_PACKAGE): $(CMAKE_PACKAGE)
-	./build.sh $(BUILD_OPTIONS) jsoncons > jsoncons.log 2>&1
+	./build.sh $(BUILD_OPTIONS) jsoncons 2>&1 | tee jsoncons.log
 jsoncons: $(JSONCONS_PACKAGE)
 
 jsoncons_clean:
@@ -125,9 +130,9 @@ jsoncons_clean:
 	@rm -rf jsoncons*
 	@rm -rf $(JSONCONS_PACKAGE)
 
-# jwt-cpp: depends on cmake and json.
+# --- JWT-CPP (Common dependency) ---
 $(JWT_CPP_PACKAGE): $(CMAKE_PACKAGE) $(JSON_PACKAGE)
-	./build.sh $(BUILD_OPTIONS) jwt-cpp > jwt-cpp.log 2>&1
+	./build.sh $(BUILD_OPTIONS) jwt-cpp 2>&1 | tee jwt-cpp.log
 jwt-cpp: $(JWT_CPP_PACKAGE)
 
 jwt-cpp_clean:
@@ -135,9 +140,9 @@ jwt-cpp_clean:
 	@rm -rf jwt-cpp*
 	@rm -rf $(JWT_CPP_PACKAGE)
 
-# libarchive: depends on cmake and clang.
+# --- Libarchive (Common dependency) ---
 $(LIBARCHIVE_PACKAGE): $(CMAKE_PACKAGE) $(CLANG_PACKAGE)
-	./build.sh $(BUILD_OPTIONS) libarchive > libarchive.log 2>&1
+	./build.sh $(BUILD_OPTIONS) libarchive 2>&1 | tee libarchive.log
 libarchive: $(LIBARCHIVE_PACKAGE)
 
 libarchive_clean:
@@ -145,9 +150,10 @@ libarchive_clean:
 	@rm -rf libarchive*
 	@rm -rf $(LIBARCHIVE_PACKAGE)
 
-# mungefs: depends on cppzmq, libarchive, avro, clang-runtime, zeromq4_1.
-$(MUNGEFS_PACKAGE): $(CPPZMQ_PACKAGE) $(LIBARCHIVE_PACKAGE) $(AVRO_PACKAGE) $(CLANG_RUNTIME_PACKAGE) $(ZEROMQ4_1_PACKAGE)
-	./build.sh $(BUILD_OPTIONS) mungefs > mungefs.log 2>&1
+# --- MungeFS (Optional common dependency) ---
+# Note: Depends on the libc++ versions of its dependencies where applicable
+$(MUNGEFS_PACKAGE): $(CPPZMQ_PACKAGE) $(LIBARCHIVE_PACKAGE) $(AVRO_LIBCXX_PACKAGE) $(CLANG_RUNTIME_PACKAGE) $(ZEROMQ4_1_LIBCXX_PACKAGE)
+	./build.sh $(BUILD_OPTIONS) mungefs 2>&1 | tee mungefs.log
 mungefs: $(MUNGEFS_PACKAGE)
 
 mungefs_clean:
@@ -155,39 +161,29 @@ mungefs_clean:
 	@rm -rf mungefs*
 	@rm -rf $(MUNGEFS_PACKAGE)
 
-# nanodbc:
-$(NANODBC_PACKAGE): $(CLANG_PACKAGE)
-	./build.sh $(BUILD_OPTIONS) nanodbc > nanodbc.log 2>&1
-nanodbc: $(NANODBC_PACKAGE)
-
-# nanodbc-libcxx:
+# --- Nanodbc (libc++ only) ---
 $(NANODBC_LIBCXX_PACKAGE): $(CLANG_PACKAGE)
-	./build.sh $(BUILD_OPTIONS) nanodbc-libcxx > nanodbc-libcxx.log 2>&1
+	./build.sh $(BUILD_OPTIONS) nanodbc-libcxx 2>&1 | tee nanodbc-libcxx.log
 nanodbc-libcxx: $(NANODBC_LIBCXX_PACKAGE)
 
 nanodbc_clean:
 	@echo "Cleaning nanodbc..."
-	@rm -rf nanodbc*
-	@rm -rf $(NANODBC_PACKAGE) $(NANODBC_LIBCXX_PACKAGE)
+	@rm -rf nanodbc* # Cleans both potential source dirs
+	@rm -rf $(NANODBC_LIBCXX_PACKAGE)
 
-# qpid-proton:
-$(QPID_PROTON_PACKAGE): $(CLANG_PACKAGE)
-	./build.sh $(BUILD_OPTIONS) qpid-proton > qpid-proton.log 2>&1
-qpid-proton: $(QPID_PROTON_PACKAGE)
-
-# qpid-proton-libcxx:
+# --- Qpid-Proton (libc++ only) ---
 $(QPID_PROTON_LIBCXX_PACKAGE): $(CLANG_PACKAGE)
-	./build.sh $(BUILD_OPTIONS) qpid-proton-libcxx > qpid-proton-libcxx.log 2>&1
+	./build.sh $(BUILD_OPTIONS) qpid-proton-libcxx 2>&1 | tee qpid-proton-libcxx.log
 qpid-proton-libcxx: $(QPID_PROTON_LIBCXX_PACKAGE)
 
 qpid-proton_clean:
 	@echo "Cleaning qpid-proton..."
-	@rm -rf qpid-proton*
-	@rm -rf $(QPID_PROTON_PACKAGE) $(QPID_PROTON_LIBCXX_PACKAGE)
+	@rm -rf qpid-proton* # Cleans both potential source dirs
+	@rm -rf $(QPID_PROTON_LIBCXX_PACKAGE)
 
-# redis:
+# --- Redis (Common dependency) ---
 $(REDIS_PACKAGE): $(CLANG_PACKAGE)
-	./build.sh $(BUILD_OPTIONS) redis > redis.log 2>&1
+	./build.sh $(BUILD_OPTIONS) redis 2>&1 | tee redis.log
 redis: $(REDIS_PACKAGE)
 
 redis_clean:
@@ -195,44 +191,40 @@ redis_clean:
 	@rm -rf redis*
 	@rm -rf $(REDIS_PACKAGE)
 
-# spdlog:
-$(SPDLOG_PACKAGE): $(FMT_PACKAGE)
-	./build.sh $(BUILD_OPTIONS) spdlog > spdlog.log 2>&1
-spdlog: $(SPDLOG_PACKAGE)
-
-# spdlog-libcxx:
-$(SPDLOG_LIBCXX_PACKAGE): $(FMT_LIBCXX_PACKAGE)
-	./build.sh $(BUILD_OPTIONS) spdlog-libcxx > spdlog-libcxx.log 2>&1
+# --- Spdlog (libc++ only) ---
+$(SPDLOG_LIBCXX_PACKAGE): $(FMT_LIBCXX_PACKAGE) # Depends on the libc++ version of fmt
+	./build.sh $(BUILD_OPTIONS) spdlog-libcxx 2>&1 | tee spdlog-libcxx.log
 spdlog-libcxx: $(SPDLOG_LIBCXX_PACKAGE)
 
 spdlog_clean:
 	@echo "Cleaning spdlog..."
-	@rm -rf spdlog*
-	@rm -rf $(SPDLOG_PACKAGE) $(SPDLOG_LIBCXX_PACKAGE)
+	@rm -rf spdlog* # Cleans both potential source dirs
+	@rm -rf $(SPDLOG_LIBCXX_PACKAGE)
 
-# zeromq4-1:
-$(ZEROMQ4_1_PACKAGE): $(CLANG_PACKAGE)
-	./build.sh $(BUILD_OPTIONS) zeromq4-1 > zeromq4-1.log 2>&1
-zeromq4-1: $(ZEROMQ4_1_PACKAGE)
-
-# zeromq4-1-libcxx:
+# --- ZeroMQ (libc++ only) ---
 $(ZEROMQ4_1_LIBCXX_PACKAGE): $(CLANG_PACKAGE)
-	./build.sh $(BUILD_OPTIONS) zeromq4-1-libcxx > zeromq4-1-libcxx.log 2>&1
+	./build.sh $(BUILD_OPTIONS) zeromq4-1-libcxx 2>&1 | tee zeromq4-1-libcxx.log
 zeromq4-1-libcxx: $(ZEROMQ4_1_LIBCXX_PACKAGE)
 
 zeromq4-1_clean:
 	@echo "Cleaning zeromq4-1..."
-	@rm -rf zeromq4-1*
-	@rm -rf $(ZEROMQ4_1_PACKAGE) $(ZEROMQ4_1_LIBCXX_PACKAGE)
+	@rm -rf zeromq4-1* # Cleans both potential source dirs
+	@rm -rf $(ZEROMQ4_1_LIBCXX_PACKAGE)
 
 
-server-libstdcxx: avro boost catch2 clang cppzmq fmt json jsoncons libarchive nanodbc spdlog zeromq4-1
+# --- Group Target ---
+#
+# Defines the set of packages needed for the server-libcxx build.
+# These are the *convenience targets*, not the package file targets.
 
-server-libcxx: avro-libcxx boost-libcxx catch2 clang clang-runtime cppzmq fmt-libcxx json jsoncons libarchive nanodbc-libcxx spdlog-libcxx zeromq4-1-libcxx
+server-libcxx: avro-libcxx boost-libcxx catch2 clang clang-runtime cppzmq fmt-libcxx json jsoncons libarchive nanodbc-libcxx qpid-proton-libcxx spdlog-libcxx zeromq4-1-libcxx
 
-server: server-libstdcxx server-libcxx
-
+# --- Cleaning ---
+#
+# The 'clean' target removes all generated files for the remaining targets.
 clean: avro_clean boost_clean catch2_clean clang_clean clang-runtime_clean cmake_clean cppzmq_clean fmt_clean json_clean jsoncons_clean jwt-cpp_clean libarchive_clean mungefs_clean nanodbc_clean qpid-proton_clean redis_clean spdlog_clean zeromq4-1_clean
 	@echo "Cleaning generated files..."
-	@rm -rf packages.mk
+	@rm -rf packages.mk *.log # Also remove log files
 	@echo "Done."
+
+
