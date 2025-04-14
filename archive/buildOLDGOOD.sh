@@ -11,9 +11,6 @@ script_path=$(dirname "$(realpath "$0")")
 readonly ruby_version="3.1.2"
 readonly rvm_path="/usr/local/rvm" # Hardcoded, like in python's set_ruby_path
 
-# Define the explicit Python executable path (Using 3.11 as requested)
-readonly python_executable="/usr/bin/python3.11" # <-- SET TO YOUR PYTHON 3.11
-
 # Target OS/Distro for dependencies (can be overridden if needed)
 TARGET_DISTRO="rhel"
 TARGET_VERSION="8"
@@ -52,10 +49,14 @@ get_field() {
     local versions_json="${script_path}/versions.json"
     local filter # Variable to hold the constructed jq filter
 
+    # Debug print
+    # printf "DEBUG: get_field: pkg=[%s], field=[%s]\n" "$pkg" "$field" >&2
+
     # Construct filter string in bash, quoting package name for safety
     filter=".[\"${pkg}\"].${field}"
+    # printf "DEBUG: get_field: filter=[%s]\n" "$filter" >&2
 
-    # Execute jq with the constructed filter string
+    # *** MODIFIED: Removed || error_exit. Let jq return status. ***
     jq -re "$filter" "$versions_json"
 }
 
@@ -424,26 +425,18 @@ build_package() {
     # Note: RVM PATH/GEM_HOME setup is now done in main()
 
     # Prepare paths to dependencies and executables needed for template replacement
-    # *** REMOVED python_executable from local declaration ***
-    local cmake_executable
-
-    # *** Use the globally defined python executable path ***
-    # python_executable is already set as readonly from config section
-    # *** Check for python executable existence ***
-    if ! command -v "$python_executable" >/dev/null 2>&1; then
-         error_exit "Required Python executable not found at: $python_executable (Check script config)"
+    local python_executable cmake_executable
+    # Ensure python3 is available
+    if ! python_executable=$(command -v python3); then
+         error_exit "python3 command not found in PATH"
     fi
-    if [[ ! -x "$python_executable" ]]; then
-        error_exit "Python executable not executable at: $python_executable"
-    fi
-    echo "Using Python executable: [$python_executable]"
-
+    echo "Python executable: [$python_executable]"
 
     # CMake is built first, so its local path should exist if needed
     # Add check if target is not cmake itself
     if [[ "$target" != "cmake" ]]; then
         if ! cmake_executable=$(get_local_path "cmake" "bin" "cmake"); then
-             error_exit "Could not determine cmake path via get_local_path (Is cmake built?)"
+             error_exit "Could not determine cmake path via get_local_path"
         fi
          echo "CMake executable: [$cmake_executable]"
     else
@@ -473,8 +466,8 @@ build_package() {
         local pkg="$1"
         local ver build ext_root subdir prefix rpath
         # Add check if get_field fails
-        if ! ver=$(get_field "$pkg" "version_string"); then echo "Warning: Could not get version_string for rpath of $pkg" >&2; return 1; fi
-        if ! build=$(get_field "$pkg" "consortium_build_number"); then echo "Warning: Could not get build_number for rpath of $pkg" >&2; return 1; fi
+        ver=$(get_field "$pkg" "version_string") || { echo "Warning: Could not get version_string for rpath of $pkg" >&2; return 1; }
+        build=$(get_field "$pkg" "consortium_build_number") || { echo "Warning: Could not get build_number for rpath of $pkg" >&2; return 1; }
         ext_root="/opt/irods-externals" # Final install root
         subdir="${pkg}${ver}-${build}"
         prefix="${ext_root}/${subdir}"
@@ -574,14 +567,13 @@ build_package() {
         build_step_cmd=${build_step_cmd//TEMPLATE_CLANGPP_EXECUTABLE/$clangpp_executable}
         build_step_cmd=${build_step_cmd//TEMPLATE_CLANG_RUNTIME_RPATH/$clang_runtime_rpath}
         build_step_cmd=${build_step_cmd//TEMPLATE_CMAKE_EXECUTABLE/$cmake_executable}
-        # *** Ensure Python executable template uses the correct variable ***
-        build_step_cmd=${build_step_cmd//TEMPLATE_PYTHON_EXECUTABLE/$python_executable}
         # Note: Removed references to non-libcxx paths/roots (boost_root, avro_path, etc.)
         # Ensure templates in versions.json only use the libcxx versions where applicable
         local qpid_proton_libcxx_subdir="qpid-proton-libcxx$(get_field qpid-proton-libcxx version_string)-$(get_field qpid-proton-libcxx consortium_build_number)" || qpid_proton_libcxx_subdir=""
         build_step_cmd=${build_step_cmd//TEMPLATE_QPID_PROTON_LIBCXX_SUBDIRECTORY/$qpid_proton_libcxx_subdir} # Added LIBCXX here
         # build_step_cmd=${build_step_cmd//TEMPLATE_QPID_PROTON_RPATH/$qpid_proton_rpath} # Removed non-libcxx
         build_step_cmd=${build_step_cmd//TEMPLATE_QPID_PROTON_LIBCXX_RPATH/$qpid_proton_libcxx_rpath}
+        build_step_cmd=${build_step_cmd//TEMPLATE_PYTHON_EXECUTABLE/$python_executable}
         # build_step_cmd=${build_step_cmd//TEMPLATE_BOOST_ROOT/$boost_root} # Removed non-libcxx
         build_step_cmd=${build_step_cmd//TEMPLATE_BOOST_LIBCXX_ROOT/$boost_libcxx_root}
         # build_step_cmd=${build_step_cmd//TEMPLATE_BOOST_RPATH/$boost_rpath} # Removed non-libcxx
@@ -642,13 +634,6 @@ build_package() {
     package_cmd+=("-v" "$(get_package_version "$target")")
     package_cmd+=("-a" "$(get_package_architecture_string)")
     package_cmd+=("--iteration" "$(get_package_revision "$target")")
-    # *** Use --rpm-digest sha256 as requested ***
-    if [[ "$(get_package_type)" == "rpm" ]]; then
-        package_cmd+=("--rpm-digest" "sha256")
-        # Keep payload digest explicit too for safety? Or remove as requested?
-        # Let's remove payload digest as per explicit request this time.
-        # package_cmd+=("--rpm-payload-digest" "sha256")
-    fi
 
     # Add RPM specific tag for clang-runtime if needed
     if [[ "$(get_package_type)" == "rpm" && "$target" == "clang-runtime" ]]; then
