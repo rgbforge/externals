@@ -42,7 +42,6 @@ set_environ_path() {
 }
 
 # Function to get package info field from versions.json using jq
-# Returns the value on success, prints nothing and returns non-zero on failure.
 get_field() {
     local pkg="$1"
     local field="$2"
@@ -50,45 +49,26 @@ get_field() {
     local filter # Variable to hold the constructed jq filter
 
     # Debug print
-    # printf "DEBUG: get_field: pkg=[%s], field=[%s]\n" "$pkg" "$field" >&2
+    printf "DEBUG: get_field: pkg=[%s], field=[%s]\n" "$pkg" "$field" >&2
 
-    # Construct filter string in bash, quoting package name for safety
+    # *** MODIFIED jq call - Constructing filter string in bash ***
+    # Ensure the package name is quoted correctly within the filter, especially if it contains hyphens.
     filter=".[\"${pkg}\"].${field}"
-    # printf "DEBUG: get_field: filter=[%s]\n" "$filter" >&2
+    printf "DEBUG: get_field: filter=[%s]\n" "$filter" >&2
 
-    # *** MODIFIED: Removed || error_exit. Let jq return status. ***
-    jq -re "$filter" "$versions_json"
+    # Execute jq with the constructed filter string
+    jq -re "$filter" "$versions_json" || error_exit "Failed to get field '$field' for package '$pkg' using filter '$filter' from '$versions_json'"
 }
-
-# Helper function for optional fields from versions.json
-# Calls get_field and returns the value, or the string "null" if get_field fails.
-get_optional_field() {
-    local val
-    if val=$(get_field "$1" "$2"); then # Check exit status of get_field
-        echo "$val" # Success, return the value
-    else
-        # get_field failed (returned non-zero), likely field not found
-        echo "null" # Return "null" string
-    fi
-}
-
 
 # Function to get the full external package name string (e.g., irods-externals-...)
 get_full_external_package_name() {
     local pkg="$1"
     local version_string build_number
-
-    # Use explicit checks for required fields
-    if ! version_string=$(get_field "$pkg" "version_string"); then
-        error_exit "Failed to get required field 'version_string' for '$pkg'"
-    fi
-    [[ "$version_string" == "null" ]] && error_exit "Required field 'version_string' is null for '$pkg' in versions.json"
-
-    if ! build_number=$(get_field "$pkg" "consortium_build_number"); then
-        error_exit "Failed to get required field 'consortium_build_number' for '$pkg'"
-    fi
-     [[ "$build_number" == "null" ]] && error_exit "Required field 'consortium_build_number' is null for '$pkg' in versions.json"
-
+    version_string=$(get_field "$pkg" "version_string")
+    # Handle potential null from simplified get_field if key missing
+    [[ "$version_string" == "null" ]] && error_exit "Missing 'version_string' for dependency '$pkg'"
+    build_number=$(get_field "$pkg" "consortium_build_number")
+     [[ "$build_number" == "null" ]] && error_exit "Missing 'consortium_build_number' for dependency '$pkg'"
     echo "irods-externals-${pkg}${version_string}-${build_number}"
 }
 
@@ -99,22 +79,12 @@ get_local_path() {
     local path_elements=("${@:2}")
     local version_string build_number externals_root path_name local_path element
 
-    # Use explicit checks for required fields
-    if ! version_string=$(get_field "$package_name" "version_string"); then
-        error_exit "Failed to get required field 'version_string' for '$package_name' in get_local_path"
-    fi
-    [[ "$version_string" == "null" ]] && error_exit "Required field 'version_string' is null for '$package_name' in versions.json"
-
-    if ! build_number=$(get_field "$package_name" "consortium_build_number"); then
-         error_exit "Failed to get required field 'consortium_build_number' for '$package_name' in get_local_path"
-    fi
-    [[ "$build_number" == "null" ]] && error_exit "Required field 'consortium_build_number' is null for '$package_name' in versions.json"
-
-    if ! externals_root=$(get_field "$package_name" "externals_root"); then
-         error_exit "Failed to get required field 'externals_root' for '$package_name' in get_local_path"
-    fi
-    [[ "$externals_root" == "null" ]] && error_exit "Required field 'externals_root' is null for '$package_name' in versions.json"
-
+    version_string=$(get_field "$package_name" "version_string")
+    [[ "$version_string" == "null" ]] && error_exit "Missing 'version_string' for '$package_name' in get_local_path"
+    build_number=$(get_field "$package_name" "consortium_build_number")
+    [[ "$build_number" == "null" ]] && error_exit "Missing 'consortium_build_number' for '$package_name' in get_local_path"
+    externals_root=$(get_field "$package_name" "externals_root")
+    [[ "$externals_root" == "null" ]] && error_exit "Missing 'externals_root' for '$package_name' in get_local_path"
 
     path_name="${package_name}${version_string}-${build_number}"
     local_path="${script_path}/${path_name}_src/${externals_root}/${path_name}"
@@ -124,6 +94,10 @@ get_local_path() {
         local_path="${local_path}/${element}"
     done
 
+    # Check if the path actually exists before returning it
+    # if [[ ! -e "$local_path" ]]; then
+    #     echo "Warning: Calculated local path does not exist: $local_path" >&2
+    # fi
     echo "$local_path"
 }
 
@@ -162,18 +136,11 @@ run_cmd() {
 get_package_name_string() {
     local p="$1"
     local version_string build_number
-
-    # Use explicit checks for required fields
-    if ! version_string=$(get_field "$p" "version_string"); then
-        error_exit "Failed to get required field 'version_string' for '$p' in get_package_name_string"
-    fi
-    [[ "$version_string" == "null" ]] && error_exit "Required field 'version_string' is null for '$p' in versions.json"
-
-    if ! build_number=$(get_field "$p" "consortium_build_number"); then
-        error_exit "Failed to get required field 'consortium_build_number' for '$p' in get_package_name_string"
-    fi
-    [[ "$build_number" == "null" ]] && error_exit "Required field 'consortium_build_number' is null for '$p' in versions.json"
-
+    version_string=$(get_field "$p" "version_string")
+    # Handle potential null from simplified get_field if key missing
+    [[ "$version_string" == "null" ]] && error_exit "Missing 'version_string' for '$p' in get_package_name_string"
+    build_number=$(get_field "$p" "consortium_build_number")
+    [[ "$build_number" == "null" ]] && error_exit "Missing 'consortium_build_number' for '$p' in get_package_name_string"
     echo "irods-externals-${p}${version_string}-${build_number}"
 }
 
@@ -187,7 +154,7 @@ get_package_revision() {
     local p="$1"
     local ver_pkgrev ver_pkgrev_suffix1 ver_pkgrev_suffix2 dt dv
     # Use default value "0" directly in jq query if package_revision is missing
-    # Using safe navigation here just in case - this field is often optional
+    # Using safe navigation here just in case
     ver_pkgrev=$(jq -re --arg pkg "$p" '.[$pkg]?.package_revision? // "0"' "${script_path}/versions.json") || ver_pkgrev="0" # Default if jq fails
 
     # Determine suffix based on distro type (simplified version)
@@ -223,13 +190,11 @@ get_package_architecture_string() { arch; } # Assumes 'arch' command is availabl
 get_package_filename() {
     local p="$1"
     local n v r a t
-    # Add checks for required functions
-    n=$(get_package_name_string "$p") || error_exit "Failed to get package name string for '$p'"
-    v=$(get_package_version "$p") || error_exit "Failed to get package version for '$p'"
-    r=$(get_package_revision "$p") || error_exit "Failed to get package revision for '$p'"
-    a=$(get_package_architecture_string) || error_exit "Failed to get package architecture"
-    t=$(get_package_extension) || error_exit "Failed to get package extension"
-
+    n=$(get_package_name_string "$p")
+    v=$(get_package_version "$p")
+    r=$(get_package_revision "$p")
+    a=$(get_package_architecture_string)
+    t=$(get_package_extension)
     # Format differs slightly between deb and rpm
     if [[ "$t" == "rpm" ]]; then
         echo "${n}-${v}-${r}.${a}.${t}"
@@ -302,36 +267,31 @@ build_package() {
     echo "--- Building [$target] ---"
 
     # Get package metadata from versions.json
-    local version_string consortium_build_number externals_root license commitish
-    local enable_sha git_repo
-    local patches_array build_steps_array external_build_steps_array fpm_dirs_array
+    local version_string consortium_build_number externals_root license patches_str build_steps_str external_build_steps_str fpm_dirs_str enable_sha git_repo commitish
+    version_string=$(get_field "$target" "version_string") || error_exit "Missing 'version_string' for '$target'"
+    [[ "$version_string" == "null" ]] && error_exit "Missing 'version_string' for '$target' in versions.json"
+    consortium_build_number=$(get_field "$target" "consortium_build_number") || error_exit "Missing 'consortium_build_number' for '$target'"
+    [[ "$consortium_build_number" == "null" ]] && error_exit "Missing 'consortium_build_number' for '$target' in versions.json"
+    externals_root=$(get_field "$target" "externals_root") || error_exit "Missing 'externals_root' for '$target'"
+    [[ "$externals_root" == "null" ]] && error_exit "Missing 'externals_root' for '$target' in versions.json"
 
-    # Get REQUIRED fields, exit if missing
-    if ! version_string=$(get_field "$target" "version_string"); then error_exit "'version_string' missing for '$target'"; fi
-    [[ "$version_string" == "null" ]] && error_exit "'version_string' is null for '$target'"
-    if ! consortium_build_number=$(get_field "$target" "consortium_build_number"); then error_exit "'consortium_build_number' missing for '$target'"; fi
-    [[ "$consortium_build_number" == "null" ]] && error_exit "'consortium_build_number' is null for '$target'"
-    if ! externals_root=$(get_field "$target" "externals_root"); then error_exit "'externals_root' missing for '$target'"; fi
-    [[ "$externals_root" == "null" ]] && error_exit "'externals_root' is null for '$target'"
-    if ! commitish=$(get_field "$target" "commitish"); then error_exit "'commitish' missing for '$target'"; fi
-    [[ "$commitish" == "null" ]] && error_exit "'commitish' is null for '$target'"
-
-    # Get OPTIONAL fields using helper
-    license=$(get_optional_field "$target" "license")
+    license=$(get_field "$target" "license") || license="Unknown" # Allow license to be missing
     [[ "$license" == "null" ]] && license="Unknown"
 
-    enable_sha_val=$(get_optional_field "$target" "enable_sha")
-    [[ "$enable_sha_val" == "null" || "$enable_sha_val" == "false" ]] && enable_sha="false" || enable_sha="true"
-
-    git_repo_val=$(get_optional_field "$target" "git_repository")
-    [[ "$git_repo_val" == "null" ]] && git_repo="https://github.com/irods/${target}" || git_repo="$git_repo_val"
-
     # Read multi-line outputs into arrays safely using process substitution and mapfile
-    # These are optional, so failure is okay (mapfile handles empty input)
     mapfile -t patches_array < <(jq -r --arg pkg "$target" '.[$pkg]?.patches? // [] | .[]' "${script_path}/versions.json")
     mapfile -t build_steps_array < <(jq -r --arg pkg "$target" '.[$pkg]?.build_steps? // [] | .[]' "${script_path}/versions.json")
     mapfile -t external_build_steps_array < <(jq -r --arg pkg "$target" '.[$pkg]?.external_build_steps? // [] | .[]' "${script_path}/versions.json")
     mapfile -t fpm_dirs_array < <(jq -r --arg pkg "$target" '.[$pkg]?.fpm_directories? // [] | .[]' "${script_path}/versions.json")
+
+    enable_sha=$(get_field "$target" "enable_sha") || enable_sha="false"
+    [[ "$enable_sha" == "null" ]] && enable_sha="false"
+
+    git_repo=$(get_field "$target" "git_repository") || git_repo="https://github.com/irods/${target}" # Default repo
+    [[ "$git_repo" == "null" ]] && git_repo="https://github.com/irods/${target}"
+
+    commitish=$(get_field "$target" "commitish") || error_exit "Missing 'commitish' for '$target'"
+    [[ "$commitish" == "null" ]] && error_exit "Missing 'commitish' for '$target' in versions.json"
 
 
     # Define paths
@@ -374,8 +334,8 @@ build_package() {
             mkdir -p "$build_dir" || error_exit "Failed to create base build dir for clang"
             cd "$build_dir" || error_exit "Failed to cd into $build_dir"
             echo "Cloning Clang/LLVM project (commitish: $commitish)..."
-            # Added --progress flag
-            run_cmd "git clone --progress --depth 1 --branch \"$commitish\" https://github.com/irods/llvm-project" "git clone failed for clang"
+            # Clone only the specific branch/tag to save time/space
+            run_cmd "git clone --depth 1 --branch \"$commitish\" https://github.com/irods/llvm-project" "git clone failed for clang"
             cd "$target_dir" || error_exit "Failed to cd into $target_dir"
             echo "Applying patches to Clang/LLVM..."
             apply_patches
@@ -387,7 +347,7 @@ build_package() {
         # clang-runtime doesn't have source, just build steps
         target_dir="${build_dir}/${target}" # Use a dedicated directory
         mkdir -p "$target_dir" || error_exit "Failed to create directory for clang-runtime"
-        cd "$target_dir" || error_exit "Failed to cd into $target_dir" # Still cd here for consistency
+        cd "$target_dir" || error_exit "Failed to cd into $target_dir"
     else
         # Standard package source handling
         target_dir="${build_dir}/${target}"
@@ -395,8 +355,7 @@ build_package() {
             mkdir -p "$build_dir" || error_exit "Failed to create base build dir for $target"
             cd "$build_dir" || error_exit "Failed to cd into $build_dir"
             echo "Cloning source for $target (repo: $git_repo, commitish: $commitish)..."
-            # Added --progress flag
-            local git_cmd_array=("git" "clone" "--progress" "--recurse-submodules")
+            local git_cmd_array=("git" "clone" "--recurse-submodules")
 
             if [[ "$enable_sha" == "true" ]]; then
                 # Clone full history if checking out a specific SHA
@@ -449,7 +408,6 @@ build_package() {
     # Get local paths for dependencies (only those potentially needed in templates)
     # Use helper function to safely get paths, return empty string if dep not found/built?
     safe_get_local_path() {
-        # Returns empty string on failure
         get_local_path "$@" 2>/dev/null || echo ""
     }
     local cppzmq_root avro_libcxx_root boost_libcxx_root fmt_libcxx_root json_root libarchive_root zmq_libcxx_root
@@ -489,14 +447,12 @@ build_package() {
     local clang_build_root clang_executable clangpp_executable clang_cpp_headers clang_cpp_libraries clang_subdirectory
     # Only define these if clang has been built (i.e., target is not clang or cmake)
     if [[ "$target" != "clang" && "$target" != "cmake" ]]; then
-        if ! clang_build_root=$(get_local_path "clang"); then error_exit "Could not get clang build root"; fi
+        clang_build_root=$(get_local_path "clang") || error_exit "Could not get clang build root"
         clang_executable="${clang_build_root}/bin/clang"
         clangpp_executable="${clang_build_root}/bin/clang++"
         clang_cpp_headers="${clang_build_root}/include/c++/v1" # Path to libc++ headers
         clang_cpp_libraries="${clang_build_root}/lib"          # Path to libc++ libraries
-        if ! clang_version_string=$(get_field clang version_string); then error_exit "Could not get clang version_string"; fi
-        if ! clang_build_num=$(get_field clang consortium_build_number); then error_exit "Could not get clang consortium_build_number"; fi
-        clang_subdirectory="clang${clang_version_string}-${clang_build_num}"
+        clang_subdirectory="clang$(get_field clang version_string)-$(get_field clang consortium_build_number)" || clang_subdirectory="clang-unknown"
 
         # Set CC/CXX environment variables for build steps that need clang
         # Export them so they are available to sub-processes run by run_cmd
@@ -512,12 +468,11 @@ build_package() {
         echo "Updated PATH for build: $PATH"
     else
         # Avoid errors when building clang/cmake itself
-        clang_executable="clang" # Use system default if clang isn't built yet
+        clang_executable="clang"
         clangpp_executable="clang++"
         clang_cpp_headers="/usr/include/c++/v1" # Placeholder
         clang_cpp_libraries="/usr/lib"          # Placeholder
         clang_subdirectory="clang-building"
-        clang_build_root="" # Not yet defined
         echo "Building clang or cmake, using system compilers initially."
     fi
 
@@ -535,68 +490,51 @@ build_package() {
     fi
 
     local i # Loop variable for build step command
-    local build_step_cmd # Temp variable to hold modified command
-
     for i in "${all_build_steps[@]}"; do
         [[ -z "$i" ]] && continue # Skip empty lines
 
-        build_step_cmd="$i" # Start with original command
-
-        # *** Fix for clang-runtime relative paths ***
-        if [[ "$target" == "clang-runtime" ]]; then
-            # Check if clang_build_root was successfully determined
-            if [[ -z "$clang_build_root" ]]; then
-                 error_exit "Clang build root path could not be determined for clang-runtime build step."
-            fi
-            # Replace the relative path prefix with the absolute path to clang's staging lib dir
-            local clang_lib_path_pattern="../../TEMPLATE_CLANG_SUBDIRECTORY/lib/"
-            local clang_lib_path_absolute="${clang_build_root}/lib/"
-            # Use bash parameter expansion for replacement
-            build_step_cmd=${build_step_cmd//$clang_lib_path_pattern/$clang_lib_path_absolute}
-        fi
-
         # Replace placeholders using parameter expansion for safety
-        build_step_cmd=${build_step_cmd//TEMPLATE_JOBS/$(get_jobs)}
-        build_step_cmd=${build_step_cmd//TEMPLATE_SCRIPT_PATH/$script_path}
-        build_step_cmd=${build_step_cmd//TEMPLATE_INSTALL_PREFIX/$install_prefix}
-        build_step_cmd=${build_step_cmd//TEMPLATE_GCC_INSTALL_PREFIX/$clang_gcc_install_prefix}
-        build_step_cmd=${build_step_cmd//TEMPLATE_CLANG_CPP_HEADERS/$clang_cpp_headers}
-        build_step_cmd=${build_step_cmd//TEMPLATE_CLANG_CPP_LIBRARIES/$clang_cpp_libraries}
-        build_step_cmd=${build_step_cmd//TEMPLATE_CLANG_SUBDIRECTORY/$clang_subdirectory}
-        build_step_cmd=${build_step_cmd//TEMPLATE_CLANG_EXECUTABLE/$clang_executable}
-        build_step_cmd=${build_step_cmd//TEMPLATE_CLANGPP_EXECUTABLE/$clangpp_executable}
-        build_step_cmd=${build_step_cmd//TEMPLATE_CLANG_RUNTIME_RPATH/$clang_runtime_rpath}
-        build_step_cmd=${build_step_cmd//TEMPLATE_CMAKE_EXECUTABLE/$cmake_executable}
+        i=${i//TEMPLATE_JOBS/$(get_jobs)}
+        i=${i//TEMPLATE_SCRIPT_PATH/$script_path}
+        i=${i//TEMPLATE_INSTALL_PREFIX/$install_prefix}
+        i=${i//TEMPLATE_GCC_INSTALL_PREFIX/$clang_gcc_install_prefix}
+        i=${i//TEMPLATE_CLANG_CPP_HEADERS/$clang_cpp_headers}
+        i=${i//TEMPLATE_CLANG_CPP_LIBRARIES/$clang_cpp_libraries}
+        i=${i//TEMPLATE_CLANG_SUBDIRECTORY/$clang_subdirectory}
+        i=${i//TEMPLATE_CLANG_EXECUTABLE/$clang_executable}
+        i=${i//TEMPLATE_CLANGPP_EXECUTABLE/$clangpp_executable}
+        i=${i//TEMPLATE_CLANG_RUNTIME_RPATH/$clang_runtime_rpath}
+        i=${i//TEMPLATE_CMAKE_EXECUTABLE/$cmake_executable}
         # Note: Removed references to non-libcxx paths/roots (boost_root, avro_path, etc.)
         # Ensure templates in versions.json only use the libcxx versions where applicable
         local qpid_proton_libcxx_subdir="qpid-proton-libcxx$(get_field qpid-proton-libcxx version_string)-$(get_field qpid-proton-libcxx consortium_build_number)" || qpid_proton_libcxx_subdir=""
-        build_step_cmd=${build_step_cmd//TEMPLATE_QPID_PROTON_LIBCXX_SUBDIRECTORY/$qpid_proton_libcxx_subdir} # Added LIBCXX here
-        # build_step_cmd=${build_step_cmd//TEMPLATE_QPID_PROTON_RPATH/$qpid_proton_rpath} # Removed non-libcxx
-        build_step_cmd=${build_step_cmd//TEMPLATE_QPID_PROTON_LIBCXX_RPATH/$qpid_proton_libcxx_rpath}
-        build_step_cmd=${build_step_cmd//TEMPLATE_PYTHON_EXECUTABLE/$python_executable}
-        # build_step_cmd=${build_step_cmd//TEMPLATE_BOOST_ROOT/$boost_root} # Removed non-libcxx
-        build_step_cmd=${build_step_cmd//TEMPLATE_BOOST_LIBCXX_ROOT/$boost_libcxx_root}
-        # build_step_cmd=${build_step_cmd//TEMPLATE_BOOST_RPATH/$boost_rpath} # Removed non-libcxx
-        build_step_cmd=${build_step_cmd//TEMPLATE_BOOST_LIBCXX_RPATH/$boost_libcxx_rpath}
-        build_step_cmd=${build_step_cmd//TEMPLATE_LIBARCHIVE_PATH/$libarchive_root} # Common dependency
-        build_step_cmd=${build_step_cmd//TEMPLATE_LIBARCHIVE_RPATH/$libarchive_rpath} # Common dependency
-        # build_step_cmd=${build_step_cmd//TEMPLATE_AVRO_RPATH/$avro_rpath} # Removed non-libcxx
-        # build_step_cmd=${build_step_cmd//TEMPLATE_AVRO_PATH/$avro_root} # Removed non-libcxx
-        build_step_cmd=${build_step_cmd//TEMPLATE_AVRO_LIBCXX_RPATH/$avro_libcxx_rpath}
-        build_step_cmd=${build_step_cmd//TEMPLATE_AVRO_LIBCXX_PATH/$avro_libcxx_root}
-        # build_step_cmd=${build_step_cmd//TEMPLATE_ZMQ_RPATH/$zmq_rpath} # Removed non-libcxx
-        # build_step_cmd=${build_step_cmd//TEMPLATE_ZMQ_PATH/$zmq_root} # Removed non-libcxx
-        build_step_cmd=${build_step_cmd//TEMPLATE_ZMQ_LIBCXX_RPATH/$zmq_libcxx_rpath}
-        build_step_cmd=${build_step_cmd//TEMPLATE_ZMQ_LIBCXX_PATH/$zmq_libcxx_root} # Added LIBCXX path
-        build_step_cmd=${build_step_cmd//TEMPLATE_CPPZMQ_PATH/$cppzmq_root} # Common dependency
-        # build_step_cmd=${build_step_cmd//TEMPLATE_FMT_PATH/$fmt_root} # Removed non-libcxx
-        # build_step_cmd=${build_step_cmd//TEMPLATE_FMT_RPATH/$fmt_rpath} # Removed non-libcxx
-        build_step_cmd=${build_step_cmd//TEMPLATE_FMT_LIBCXX_PATH/$fmt_libcxx_root}
-        build_step_cmd=${build_step_cmd//TEMPLATE_FMT_LIBCXX_RPATH/$fmt_libcxx_rpath}
-        build_step_cmd=${build_step_cmd//TEMPLATE_JSON_PATH/$json_root} # Common dependency
+        i=${i//TEMPLATE_QPID_PROTON_LIBCXX_SUBDIRECTORY/$qpid_proton_libcxx_subdir} # Added LIBCXX here
+        # i=${i//TEMPLATE_QPID_PROTON_RPATH/$qpid_proton_rpath} # Removed non-libcxx
+        i=${i//TEMPLATE_QPID_PROTON_LIBCXX_RPATH/$qpid_proton_libcxx_rpath}
+        i=${i//TEMPLATE_PYTHON_EXECUTABLE/$python_executable}
+        # i=${i//TEMPLATE_BOOST_ROOT/$boost_root} # Removed non-libcxx
+        i=${i//TEMPLATE_BOOST_LIBCXX_ROOT/$boost_libcxx_root}
+        # i=${i//TEMPLATE_BOOST_RPATH/$boost_rpath} # Removed non-libcxx
+        i=${i//TEMPLATE_BOOST_LIBCXX_RPATH/$boost_libcxx_rpath}
+        i=${i//TEMPLATE_LIBARCHIVE_PATH/$libarchive_root} # Common dependency
+        i=${i//TEMPLATE_LIBARCHIVE_RPATH/$libarchive_rpath} # Common dependency
+        # i=${i//TEMPLATE_AVRO_RPATH/$avro_rpath} # Removed non-libcxx
+        # i=${i//TEMPLATE_AVRO_PATH/$avro_root} # Removed non-libcxx
+        i=${i//TEMPLATE_AVRO_LIBCXX_RPATH/$avro_libcxx_rpath}
+        i=${i//TEMPLATE_AVRO_LIBCXX_PATH/$avro_libcxx_root}
+        # i=${i//TEMPLATE_ZMQ_RPATH/$zmq_rpath} # Removed non-libcxx
+        # i=${i//TEMPLATE_ZMQ_PATH/$zmq_root} # Removed non-libcxx
+        i=${i//TEMPLATE_ZMQ_LIBCXX_RPATH/$zmq_libcxx_rpath}
+        i=${i//TEMPLATE_ZMQ_LIBCXX_PATH/$zmq_libcxx_root} # Added LIBCXX path
+        i=${i//TEMPLATE_CPPZMQ_PATH/$cppzmq_root} # Common dependency
+        # i=${i//TEMPLATE_FMT_PATH/$fmt_root} # Removed non-libcxx
+        # i=${i//TEMPLATE_FMT_RPATH/$fmt_rpath} # Removed non-libcxx
+        i=${i//TEMPLATE_FMT_LIBCXX_PATH/$fmt_libcxx_root}
+        i=${i//TEMPLATE_FMT_LIBCXX_RPATH/$fmt_libcxx_rpath}
+        i=${i//TEMPLATE_JSON_PATH/$json_root} # Common dependency
 
         # Run the processed build step command
-        run_cmd "$build_step_cmd" "Build step failed for $target"
+        run_cmd "$i" "Build step failed for $target"
     done
 
     # --- Packaging Step ---

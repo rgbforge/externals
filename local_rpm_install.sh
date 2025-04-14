@@ -13,8 +13,8 @@ install_order=(
     "irods-externals-catch22.13.8-0-1.0-3.el8.x86_64.rpm"          # 3. catch2
     "irods-externals-json3.10.4-0-1.0-3.el8.x86_64.rpm"            # 4. json
     "irods-externals-jsoncons0.178.0-0-1.0-0.el8.x86_64.rpm"      # 5. jsoncons
+    "irods-externals-clang-runtime13.0.1-0-1.0-1.el8.x86_64.rpm" # 7. clang-runtime (VERIFY FILENAME!)
     "irods-externals-boost-libcxx1.81.0-1-1.0-2.el8.x86_64.rpm"    # 6. boost-libcxx
-    # "irods-externals-clang-runtime13.0.1-0-1.0-1.el8.x86_64.rpm" # 7. clang-runtime (VERIFY FILENAME!)
     "irods-externals-fmt-libcxx8.1.1-1-1.0-1.el8.x86_64.rpm"       # 8. fmt-libcxx
     "irods-externals-libarchive3.5.2-0-1.0-5.el8.x86_64.rpm"       # 9. libarchive
     "irods-externals-nanodbc-libcxx2.13.0-2-1.0-1.el8.x86_64.rpm"  # 10. nanodbc-libcxx
@@ -22,7 +22,7 @@ install_order=(
     "irods-externals-zeromq4-1-libcxx4.1.8-1-1.0-2.el8.x86_64.rpm" # 12. zeromq4-1-libcxx
     "irods-externals-spdlog-libcxx1.9.2-2-1.0-1.el8.x86_64.rpm"   # 13. spdlog-libcxx
     "irods-externals-cppzmq4.8.1-1-1.0-5.el8.x86_64.rpm"          # 14. cppzmq
-    # "irods-externals-avro-libcxx1.11.0-3-1.0-1.el8.x86_64.rpm"  # 15. avro-libcxx (VERIFY FILENAME!)
+    "irods-externals-avro-libcxx1.11.0-3-1.0-1.el8.x86_64.rpm"  # 15. avro-libcxx (VERIFY FILENAME!)
 )
 
 # --- Installation Loop ---
@@ -58,3 +58,4 @@ echo "All specified RPMs installed successfully."
 echo "--------------------------------------------------"
 
 exit 0
+
