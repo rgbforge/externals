@@ -1,68 +1,4 @@
 {
-    "avro": {
-        "commitish": "release-1.11.0",
-        "version_string": "1.11.0",
-        "license": "Apache-2.0",
-        "consortium_build_number": "3",
-        "package_revision": "1",
-        "externals_root": "opt/irods-externals",
-        "build_steps": [
-            "mkdir -p lang/c++/build",
-            "cd lang/c++/build; rm -f CMakeCache.txt;TEMPLATE_CMAKE_EXECUTABLE -G 'Unix Makefiles' -DCMAKE_INSTALL_RPATH=/TEMPLATE_BOOST_RPATH -DCMAKE_INSTALL_PREFIX=TEMPLATE_INSTALL_PREFIX -DBOOST_ROOT=TEMPLATE_BOOST_ROOT -DCMAKE_CXX_COMPILER=TEMPLATE_CLANGPP_EXECUTABLE -DCMAKE_C_COMPILER=TEMPLATE_CLANG_EXECUTABLE ..",
-            "cd lang/c++/build; env LD_LIBRARY_PATH='/TEMPLATE_BOOST_ROOT/lib' make -jTEMPLATE_JOBS; make install"
-        ],
-        "external_build_steps": [
-            "cd lang/c++/build",
-            "ls -l TEMPLATE_INSTALL_PREFIX/../* ; cp -rf TEMPLATE_INSTALL_PREFIX/../* ../../ ; ls -l ../../"
-        ],
-        "fpm_directories": ["bin","include","lib"],
-        "interdependencies": [
-            "boost"
-        ],
-        "distro_dependencies": {
-            "rhel": {
-                "8": [
-                    "glibc",
-                    "libgcc",
-                    "libstdc++"
-                ],
-                "9": [
-                    "glibc",
-                    "libgcc",
-                    "libstdc++"
-                ]
-            },
-            "debian": {
-                "11": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6"
-                ],
-                "12": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6"
-                ]
-            },
-            "ubuntu": {
-                "20.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6"
-                ],
-                "22.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6"
-                ],
-                "24.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6"
-                ]
-            }
-        }
-    },
     "avro-libcxx": {
         "git_repository": "https://github.com/irods/avro",
         "commitish": "release-1.11.0",
@@ -86,139 +22,6 @@
                 "8": [
                     "glibc",
                     "libgcc"
-                ],
-                "9": [
-                    "glibc",
-                    "libgcc"
-                ]
-            },
-            "debian": {
-                "11": [
-                    "libc6",
-                    "libgcc-s1"
-                ],
-                "12": [
-                    "libc6",
-                    "libgcc-s1"
-                ]
-            },
-            "ubuntu": {
-                "20.04": [
-                    "libc6",
-                    "libgcc-s1"
-                ],
-                "22.04": [
-                    "libc6",
-                    "libgcc-s1"
-                ],
-                "24.04": [
-                    "libc6",
-                    "libgcc-s1"
-                ]
-            }
-        }
-    },
-    "boost": {
-        "git_repository": "https://github.com/boostorg/boost",
-        "commitish": "boost-1.81.0",
-        "version_string": "1.81.0",
-        "license": "BSL-1.0",
-        "consortium_build_number": "1",
-        "package_revision": "2",
-        "externals_root": "opt/irods-externals",
-        "patches": [
-            "boost/from-debian/15.patch",
-            "boost/from-debian/116.patch",
-            "boost/from-debian/fix-mpi-python37.patch",
-            "boost/from-debian/fix_extension.patch",
-            "boost/from-debian/30.patch",
-            "boost/from-debian/40.patch"
-        ],
-        "build_steps": [
-            "git submodule update --init",
-            "./bootstrap.sh --prefix=TEMPLATE_INSTALL_PREFIX --with-python=/usr/bin/python3 --with-icu",
-            "./b2 headers",
-            "./b2 install toolset=clang --without-mpi threading=multi link=shared cxxstd=20 cxxflags='-fPIC -DBOOST_SYSTEM_NO_DEPRECATED -Dconsteval=constexpr' linkflags='-Wl,-rpath,/TEMPLATE_BOOST_RPATH' -jTEMPLATE_JOBS"
-        ],
-        "external_build_steps": [
-            "ls -l TEMPLATE_INSTALL_PREFIX/../* ; cp -rf TEMPLATE_INSTALL_PREFIX/../* ../../ ; ls -l ../../"
-        ],
-        "fpm_directories": ["include","lib"],
-        "distro_dependencies": {
-            "rhel": {
-                "8": [
-                    "glibc",
-                    "libgcc",
-                    "zlib",
-                    "libstdc++",
-                    "bzip2-libs",
-                    "xz-libs",
-                    "libzstd",
-                    "libicu"
-                ],
-                "9": [
-                    "glibc",
-                    "libgcc",
-                    "zlib",
-                    "libstdc++",
-                    "bzip2-libs",
-                    "xz-libs",
-                    "libzstd",
-                    "libicu"
-                ]
-            },
-            "debian": {
-                "11": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libz1",
-                    "libstdc++6",
-                    "libbz2-1.0",
-                    "liblzma5",
-                    "libzstd1",
-                    "libicu67"
-                ],
-                "12": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libz1",
-                    "libstdc++6",
-                    "libbz2-1.0",
-                    "liblzma5",
-                    "libzstd1",
-                    "libicu72"
-                ]
-            },
-            "ubuntu": {
-                "20.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libz1",
-                    "libstdc++6",
-                    "libbz2-1.0",
-                    "liblzma5",
-                    "libzstd1",
-                    "libicu66"
-                ],
-                "22.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libz1",
-                    "libstdc++6",
-                    "libbz2-1.0",
-                    "liblzma5",
-                    "libzstd1",
-                    "libicu70"
-                ],
-                "24.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libz1",
-                    "libstdc++6",
-                    "libbz2-1.0",
-                    "liblzma5",
-                    "libzstd1",
-                    "libicu74"
                 ]
             }
         }
@@ -241,12 +44,9 @@
         ],
         "build_steps": [
             "git submodule update --init",
-            "./bootstrap.sh --prefix=TEMPLATE_INSTALL_PREFIX --with-python=/usr/bin/python3 --without-icu",
+            "./bootstrap.sh --prefix=TEMPLATE_INSTALL_PREFIX --with-python=/usr/bin/python3.12 --without-icu",
             "./b2 headers",
             "./b2 install toolset=clang --without-mpi threading=multi link=shared cxxstd=20 --disable-icu boost.locale.icu=off cxxflags='-fPIC -DBOOST_SYSTEM_NO_DEPRECATED -Dconsteval=constexpr -stdlib=libc++ -nostdinc++ -ITEMPLATE_CLANG_CPP_HEADERS' linkflags='-stdlib=libc++ -Wl,-rpath,/TEMPLATE_CLANG_RUNTIME_RPATH:/TEMPLATE_BOOST_LIBCXX_RPATH' -jTEMPLATE_JOBS"
-        ],
-        "external_build_steps": [
-            "ls -l TEMPLATE_INSTALL_PREFIX/../* ; cp -rf TEMPLATE_INSTALL_PREFIX/../* ../../ ; ls -l ../../"
         ],
         "fpm_directories": ["include","lib"],
         "interdependencies": [
@@ -261,58 +61,6 @@
                     "bzip2-libs",
                     "xz-libs",
                     "libzstd"
-                ],
-                "9": [
-                    "glibc",
-                    "libgcc",
-                    "zlib",
-                    "bzip2-libs",
-                    "xz-libs",
-                    "libzstd"
-                ]
-            },
-            "debian": {
-                "11": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libz1",
-                    "libbz2-1.0",
-                    "liblzma5",
-                    "libzstd1"
-                ],
-                "12": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libz1",
-                    "libbz2-1.0",
-                    "liblzma5",
-                    "libzstd1"
-                ]
-            },
-            "ubuntu": {
-                "20.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libz1",
-                    "libbz2-1.0",
-                    "liblzma5",
-                    "libzstd1"
-                ],
-                "22.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libz1",
-                    "libbz2-1.0",
-                    "liblzma5",
-                    "libzstd1"
-                ],
-                "24.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libz1",
-                    "libbz2-1.0",
-                    "liblzma5",
-                    "libzstd1"
                 ]
             }
         }
@@ -328,9 +76,6 @@
             "mkdir -p build",
             "cd build; TEMPLATE_CMAKE_EXECUTABLE .. -G'Unix Makefiles' -DCMAKE_USER_MAKE_RULES_OVERRIDE=TEMPLATE_SCRIPT_PATH/ClangOverrides.txt -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=TEMPLATE_INSTALL_PREFIX -DCMAKE_INSTALL_LIBDIR=lib -DCATCH_USE_VALGRIND=OFF -DCATCH_BUILD_EXAMPLES=OFF -DCATCH_ENABLE_COVERAGE=OFF -DCATCH_ENABLE_WERROR=OFF -DCATCH_BUILD_TESTING=OFF -DBUILD_TESTING=OFF",
             "cd build; make -jTEMPLATE_JOBS; make install"
-        ],
-        "external_build_steps": [
-            "ls -l TEMPLATE_INSTALL_PREFIX/../* ; cp -rf TEMPLATE_INSTALL_PREFIX/../* ../../ ; ls -l ../../"
         ],
         "fpm_directories": ["include","lib","share"]
     },
@@ -393,9 +138,6 @@
             "cp ../build/libexec/c++-analyzer TEMPLATE_INSTALL_PREFIX/bin",
             "cp ../build/libexec/ccc-analyzer TEMPLATE_INSTALL_PREFIX/bin"
         ],
-        "external_build_steps": [
-            "ls -l TEMPLATE_INSTALL_PREFIX/../* ; cp -rf TEMPLATE_INSTALL_PREFIX/../* ../../ ; ls -l ../../"
-        ],
         "fpm_directories": ["bin","include","lib","share"],
         "distro_dependencies": {
             "rhel": {
@@ -410,77 +152,6 @@
                     "gcc-toolset-11-gcc",
                     "gcc-toolset-11-gcc-c++",
                     "gcc-toolset-11-libstdc++-devel"
-                ],
-                "9": [
-                    "glibc",
-                    "glibc-devel",
-                    "libgcc",
-                    "zlib",
-                    "libstdc++",
-                    "libstdc++-devel",
-                    "ncurses-libs",
-                    "libxml2",
-                    "gcc",
-                    "gcc-c++"
-                ]
-            },
-            "debian": {
-                "11": [
-                    "libc6",
-                    "libc6-dev",
-                    "libgcc-s1",
-                    "libgcc-10-dev",
-                    "libz1",
-                    "libstdc++6",
-                    "libstdc++-10-dev",
-                    "libtinfo6",
-                    "libxml2"
-                ],
-                "12": [
-                    "libc6",
-                    "libc6-dev",
-                    "libgcc-s1",
-                    "libgcc-12-dev",
-                    "libz1",
-                    "libstdc++6",
-                    "libstdc++-12-dev",
-                    "libtinfo6",
-                    "libxml2"
-                ]
-            },
-            "ubuntu": {
-                "20.04": [
-                    "libc6",
-                    "libc6-dev",
-                    "libgcc-s1",
-                    "libgcc-10-dev",
-                    "libz1",
-                    "libstdc++6",
-                    "libstdc++-10-dev",
-                    "libtinfo6",
-                    "libxml2"
-                ],
-                "22.04": [
-                    "libc6",
-                    "libc6-dev",
-                    "libgcc-s1",
-                    "libgcc-11-dev",
-                    "libz1",
-                    "libstdc++6",
-                    "libstdc++-11-dev",
-                    "libtinfo6",
-                    "libxml2"
-                ],
-                "24.04": [
-                    "libc6",
-                    "libc6-dev",
-                    "libgcc-s1",
-                    "libgcc-13-dev",
-                    "libz1",
-                    "libstdc++6",
-                    "libstdc++-13-dev",
-                    "libtinfo6",
-                    "libxml2"
                 ]
             }
         }
@@ -499,43 +170,12 @@
             "cp ../../TEMPLATE_CLANG_SUBDIRECTORY/lib/libc++abi.so.1.0 TEMPLATE_INSTALL_PREFIX/lib/",
             "cd TEMPLATE_INSTALL_PREFIX/lib; ln -sf libc++abi.so.1.0 libc++abi.so.1 && ln -sf libc++abi.so.1 libc++abi.so"
         ],
-        "external_build_steps": [
-            "ls -l TEMPLATE_INSTALL_PREFIX/../* ; cp -rf TEMPLATE_INSTALL_PREFIX/../* ../../ ; ls -l ../../"
-        ],
         "fpm_directories": ["lib"],
         "distro_dependencies": {
             "rhel": {
                 "8": [
                     "glibc",
                     "libgcc"
-                ],
-                "9": [
-                    "glibc",
-                    "libgcc"
-                ]
-            },
-            "debian": {
-                "11": [
-                    "libc6",
-                    "libgcc-s1"
-                ],
-                "12": [
-                    "libc6",
-                    "libgcc-s1"
-                ]
-            },
-            "ubuntu": {
-                "20.04": [
-                    "libc6",
-                    "libgcc-s1"
-                ],
-                "22.04": [
-                    "libc6",
-                    "libgcc-s1"
-                ],
-                "24.04": [
-                    "libc6",
-                    "libgcc-s1"
                 ]
             }
         }
@@ -557,9 +197,6 @@
             "make -jTEMPLATE_JOBS",
             "make install"
         ],
-        "external_build_steps": [
-            "ls -l TEMPLATE_INSTALL_PREFIX/../* ; cp -rf TEMPLATE_INSTALL_PREFIX/../* ../../ ; ls -l ../../"
-        ],
         "fpm_directories": ["bin","doc","share"],
         "distro_dependencies": {
             "rhel": {
@@ -569,57 +206,6 @@
                     "libstdc++",
                     "ncurses-libs",
                     "openssl-libs"
-                ],
-                "9": [
-                    "glibc",
-                    "libgcc",
-                    "libstdc++",
-                    "ncurses-libs",
-                    "openssl-libs"
-                ]
-            },
-            "debian": {
-                "11": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libncurses6",
-                    "libstdc++6",
-                    "libssl1.1",
-                    "libtinfo6"
-                ],
-                "12": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libncurses6",
-                    "libstdc++6",
-                    "libssl3",
-                    "libtinfo6"
-                ]
-            },
-            "ubuntu": {
-                "20.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libncurses6",
-                    "libstdc++6",
-                    "libssl1.1",
-                    "libtinfo6"
-                ],
-                "22.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libncurses6",
-                    "libstdc++6",
-                    "libssl3",
-                    "libtinfo6"
-                ],
-                "24.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libncurses6",
-                    "libstdc++6",
-                    "libssl3",
-                    "libtinfo6"
                 ]
             }
         }
@@ -639,73 +225,7 @@
             "cd build; TEMPLATE_CMAKE_EXECUTABLE .. -G'Unix Makefiles' -DCMAKE_USER_MAKE_RULES_OVERRIDE=TEMPLATE_SCRIPT_PATH/ClangOverrides.txt -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=TEMPLATE_INSTALL_PREFIX -DCMAKE_INSTALL_LIBDIR=lib -DZeroMQ_INCLUDE_DIR=TEMPLATE_ZMQ_PATH/include -DZeroMQ_INCLUDE_DIR=TEMPLATE_ZMQ_PATH/include -DZeroMQ_LIBRARY=TEMPLATE_ZMQ_PATH/lib/libzmq.so -Dpkgcfg_lib_PC_LIBZMQ_zmq=TEMPLATE_ZMQ_PATH/lib/libzmq.so -DCPPZMQ_BUILD_TESTS=OFF -DCPPZMQ_CMAKECONFIG_INSTALL_DIR=lib/cmake/cppzmq",
             "cd build; make -jTEMPLATE_JOBS; make install"
         ],
-        "external_build_steps": [
-            "ls -l TEMPLATE_INSTALL_PREFIX/../* ; cp -rf TEMPLATE_INSTALL_PREFIX/../* ../../ ; ls -l ../../"
-        ],
         "fpm_directories": ["include","lib"]
-    },
-    "fmt": {
-        "commitish": "8.1.1",
-        "version_string": "8.1.1",
-        "license": "MIT",
-        "consortium_build_number": "1",
-        "package_revision": "1",
-        "externals_root": "opt/irods-externals",
-        "patches": [
-            "fmt/from-epel/fmt-fix_implicit_ptr_conv.patch"
-        ],
-        "build_steps": [
-            "mkdir -p build",
-            "cd build; rm -f CMakeCache.txt;TEMPLATE_CMAKE_EXECUTABLE -G'Unix Makefiles' -DCMAKE_CXX_COMPILER=TEMPLATE_CLANGPP_EXECUTABLE -DCMAKE_C_COMPILER=TEMPLATE_CLANG_EXECUTABLE -DCMAKE_INSTALL_LIBDIR=lib -DBUILD_SHARED_LIBS=TRUE -DFMT_TEST=OFF -DFMT_DOC=OFF -DCMAKE_INSTALL_PREFIX=TEMPLATE_INSTALL_PREFIX ..",
-            "cd build; make fmt install"
-        ],
-        "external_build_steps": [
-            "ls -l TEMPLATE_INSTALL_PREFIX/../* ; cp -rf TEMPLATE_INSTALL_PREFIX/../* ../../ ; ls -l ../../"
-        ],
-        "fpm_directories": ["include", "lib"],
-        "distro_dependencies": {
-            "rhel": {
-                "8": [
-                    "glibc",
-                    "libgcc",
-                    "libstdc++"
-                ],
-                "9": [
-                    "glibc",
-                    "libgcc",
-                    "libstdc++"
-                ]
-            },
-            "debian": {
-                "11": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6"
-                ],
-                "12": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6"
-                ]
-            },
-            "ubuntu": {
-                "20.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6"
-                ],
-                "22.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6"
-                ],
-                "24.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6"
-                ]
-            }
-        }
     },
     "fmt-libcxx": {
         "git_repository": "https://github.com/irods/fmt",
@@ -723,9 +243,6 @@
             "cd build; rm -f CMakeCache.txt;TEMPLATE_CMAKE_EXECUTABLE -G'Unix Makefiles' -DCMAKE_CXX_COMPILER=TEMPLATE_CLANGPP_EXECUTABLE -DCMAKE_C_COMPILER=TEMPLATE_CLANG_EXECUTABLE -DCMAKE_INSTALL_RPATH=/TEMPLATE_CLANG_RUNTIME_RPATH -DCMAKE_INSTALL_LIBDIR=lib -DBUILD_SHARED_LIBS=TRUE -DFMT_TEST=OFF -DFMT_DOC=OFF -DCMAKE_INSTALL_PREFIX=TEMPLATE_INSTALL_PREFIX -DCMAKE_CXX_FLAGS='-nostdinc++ -ITEMPLATE_CLANG_CPP_HEADERS' -DCMAKE_EXE_LINKER_FLAGS='-stdlib=libc++ -LTEMPLATE_CLANG_CPP_LIBRARIES -lc++abi' -DCMAKE_SHARED_LINKER_FLAGS='-stdlib=libc++ -LTEMPLATE_CLANG_CPP_LIBRARIES -lc++abi' -DCMAKE_MODULE_LINKER_FLAGS='-stdlib=libc++ -LTEMPLATE_CLANG_CPP_LIBRARIES -lc++abi' ..",
             "cd build; make fmt install"
         ],
-        "external_build_steps": [
-            "ls -l TEMPLATE_INSTALL_PREFIX/../* ; cp -rf TEMPLATE_INSTALL_PREFIX/../* ../../ ; ls -l ../../"
-        ],
         "fpm_directories": ["include", "lib"],
         "interdependencies": [
             "clang-runtime"
@@ -735,34 +252,6 @@
                 "8": [
                     "glibc",
                     "libgcc"
-                ],
-                "9": [
-                    "glibc",
-                    "libgcc"
-                ]
-            },
-            "debian": {
-                "11": [
-                    "libc6",
-                    "libgcc-s1"
-                ],
-                "12": [
-                    "libc6",
-                    "libgcc-s1"
-                ]
-            },
-            "ubuntu": {
-                "20.04": [
-                    "libc6",
-                    "libgcc-s1"
-                ],
-                "22.04": [
-                    "libc6",
-                    "libgcc-s1"
-                ],
-                "24.04": [
-                    "libc6",
-                    "libgcc-s1"
                 ]
             }
         }
@@ -779,9 +268,6 @@
             "cd build; TEMPLATE_CMAKE_EXECUTABLE .. -G'Unix Makefiles' -DCMAKE_USER_MAKE_RULES_OVERRIDE=TEMPLATE_SCRIPT_PATH/ClangOverrides.txt -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=TEMPLATE_INSTALL_PREFIX -DCMAKE_INSTALL_LIBDIR=lib -DJSON_MultipleHeaders=ON -DBUILD_TESTING=OFF -DJSON_BuildTests=OFF",
             "cd build; make -jTEMPLATE_JOBS; make install"
         ],
-        "external_build_steps": [
-            "ls -l TEMPLATE_INSTALL_PREFIX/../* ; cp -rf TEMPLATE_INSTALL_PREFIX/../* ../../ ; ls -l ../../"
-        ],
         "fpm_directories": ["include","lib"]
     },
     "jsoncons": {
@@ -796,31 +282,7 @@
             "cd build; TEMPLATE_CMAKE_EXECUTABLE .. -G'Unix Makefiles' -DCMAKE_USER_MAKE_RULES_OVERRIDE=TEMPLATE_SCRIPT_PATH/ClangOverrides.txt -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=TEMPLATE_INSTALL_PREFIX -DCMAKE_INSTALL_LIBDIR=lib -DJSONCONS_BUILD_TESTS=OFF",
             "cd build; make -jTEMPLATE_JOBS; make install"
         ],
-        "external_build_steps": [
-            "ls -l TEMPLATE_INSTALL_PREFIX/../* ; cp -rf TEMPLATE_INSTALL_PREFIX/../* ../../ ; ls -l ../../"
-        ],
         "fpm_directories": ["include","lib"]
-    },
-    "jwt-cpp": {
-        "enable_sha": true,
-        "commitish": "6dd190d154db29fad071574aa5558f15a70752ad",
-        "version_string": "0.6.99.1",
-        "license": "MIT",
-        "consortium_build_number": "0",
-        "package_revision": "0",
-        "externals_root": "opt/irods-externals",
-        "build_steps": [
-            "mkdir -p build",
-            "cd build; TEMPLATE_CMAKE_EXECUTABLE .. -G'Unix Makefiles' -DCMAKE_USER_MAKE_RULES_OVERRIDE=TEMPLATE_SCRIPT_PATH/ClangOverrides.txt -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=TEMPLATE_INSTALL_PREFIX -DCMAKE_INSTALL_LIBDIR=lib -DJWT_BUILD_EXAMPLES=OFF -DJWT_DISABLE_PICOJSON=ON -Dnlohmann_json_ROOT=TEMPLATE_JSON_PATH -DJWT_CMAKE_FILES_INSTALL_DIR=lib/cmake/jwt-cpp",
-            "cd build; make -jTEMPLATE_JOBS; make install"
-        ],
-        "external_build_steps": [
-            "ls -l TEMPLATE_INSTALL_PREFIX/../* ; cp -rf TEMPLATE_INSTALL_PREFIX/../* ../../ ; ls -l ../../"
-        ],
-        "fpm_directories": ["include","lib"],
-        "interdependencies": [
-            "json"
-        ]
     },
     "libarchive": {
         "commitish": "v3.5.2",
@@ -845,9 +307,6 @@
             "make -jTEMPLATE_JOBS",
             "make install"
         ],
-        "external_build_steps": [
-            "ls -l TEMPLATE_INSTALL_PREFIX/../* ; cp -rf TEMPLATE_INSTALL_PREFIX/../* ../../ ; ls -l ../../"
-        ],
         "fpm_directories": ["bin","include","lib","share"],
         "distro_dependencies": {
             "rhel": {
@@ -859,197 +318,6 @@
                     "libxml2",
                     "xz-libs >= 5.2.2",
                     "libzstd"
-                ],
-                "9": [
-                    "glibc",
-                    "zlib",
-                    "bzip2-libs",
-                    "openssl-libs",
-                    "libxml2",
-                    "xz-libs >= 5.2.2"
-                ]
-            },
-            "debian": {
-                "11": [
-                    "libc6",
-                    "libz1",
-                    "libbz2-1.0",
-                    "libssl1.1",
-                    "libxml2"
-                ],
-                "12": [
-                    "libc6",
-                    "libz1",
-                    "libbz2-1.0",
-                    "libssl3",
-                    "libxml2"
-                ]
-            },
-            "ubuntu": {
-                "20.04": [
-                    "libc6",
-                    "libz1",
-                    "libbz2-1.0",
-                    "libssl1.1",
-                    "libxml2"
-                ],
-                "22.04": [
-                    "libc6",
-                    "libz1",
-                    "libbz2-1.0",
-                    "libssl3",
-                    "libxml2"
-                ],
-                "24.04": [
-                    "libc6",
-                    "libz1",
-                    "libbz2-1.0",
-                    "libssl3",
-                    "libxml2"
-                ]
-            }
-        }
-    },
-    "mungefs": {
-        "commitish": "1.0.7",
-        "version_string": "1.0.7",
-        "license": "BSD-3-Clause",
-        "consortium_build_number": "1",
-        "package_revision": "2",
-        "externals_root": "opt/irods-externals",
-        "build_steps": [
-            "mkdir -p build",
-            "cd build; rm -f CMakeCache.txt;TEMPLATE_CMAKE_EXECUTABLE -G 'Unix Makefiles' -Dcppzmq_INCLUDE_DIR=TEMPLATE_CPPZMQ_PATH/include -DZeroMQ_INCLUDE_DIR=TEMPLATE_ZMQ_PATH/include -DZeroMQ_LIBRARY=TEMPLATE_ZMQ_PATH/lib/libzmq.so -DAVROCPP_INCLUDE_DIR=TEMPLATE_AVRO_PATH/include -DAVROCPP_LIBRARY=TEMPLATE_AVRO_PATH/lib/libavrocpp.so -DAVROCPP_AVROGEN_EXECUTABLE=TEMPLATE_AVRO_PATH/bin/avrogencpp -DBOOST_ROOT=TEMPLATE_BOOST_ROOT -DLibArchive_INCLUDE_DIRS=TEMPLATE_LIBARCHIVE_PATH/include -DLibArchive_LIBRARIES=TEMPLATE_LIBARCHIVE_PATH/lib/libarchive.so -DLibArchive_INCLUDE_DIR=TEMPLATE_LIBARCHIVE_PATH/include -DLibArchive_LIBRARY=TEMPLATE_LIBARCHIVE_PATH/lib/libarchive.so -DCMAKE_INSTALL_PREFIX=TEMPLATE_INSTALL_PREFIX -DCMAKE_CXX_COMPILER=TEMPLATE_CLANGPP_EXECUTABLE -DCMAKE_C_COMPILER=TEMPLATE_CLANG_EXECUTABLE -DCMAKE_CXX_FLAGS='-Wno-deprecated-declarations' -DCMAKE_INSTALL_RPATH=/TEMPLATE_BOOST_RPATH\\;/TEMPLATE_AVRO_RPATH\\;/TEMPLATE_ZMQ_RPATH\\;/TEMPLATE_LIBARCHIVE_RPATH ..",
-            "cd build; env LD_LIBRARY_PATH=TEMPLATE_BOOST_ROOT/lib make -jTEMPLATE_JOBS; make install"
-        ],
-        "external_build_steps": [
-            "ls -l TEMPLATE_INSTALL_PREFIX/../* ; cp -rf TEMPLATE_INSTALL_PREFIX/../* ../../ ; ls -l ../../"
-        ],
-        "fpm_directories": ["bin"],
-        "interdependencies": [
-            "boost",
-            "libarchive",
-            "avro",
-            "zeromq4-1"
-        ],
-        "distro_dependencies": {
-            "rhel": {
-                "8": [
-                    "glibc",
-                    "libgcc",
-                    "libstdc++",
-                    "fuse-libs"
-                ],
-                "9": [
-                    "glibc",
-                    "libgcc",
-                    "libstdc++",
-                    "fuse-libs"
-                ]
-            },
-            "debian": {
-                "11": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6",
-                    "libfuse2"
-                ],
-                "12": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6",
-                    "libfuse2"
-                ]
-            },
-            "ubuntu": {
-                "20.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6",
-                    "libfuse2"
-                ],
-                "22.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6",
-                    "libfuse2"
-                ],
-                "24.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6",
-                    "libfuse2"
-                ]
-            }
-        }
-    },
-    "nanodbc": {
-        "commitish": "v2.13.0",
-        "version_string": "2.13.0",
-        "license": "MIT",
-        "consortium_build_number": "2",
-        "package_revision": "1",
-        "externals_root": "opt/irods-externals",
-        "patches": [
-            "nanodbc/1001-Add-missing-include-279.patch",
-            "nanodbc/1002-headers-Unconditionally-include-cstdint-386.patch"
-        ],
-        "build_steps": [
-            "mkdir -p build",
-            "cd build; rm -f CMakeCache.txt;TEMPLATE_CMAKE_EXECUTABLE -G'Unix Makefiles' -DCMAKE_CXX_COMPILER=TEMPLATE_CLANGPP_EXECUTABLE -DCMAKE_C_COMPILER=TEMPLATE_CLANG_EXECUTABLE -DBUILD_SHARED_LIBS=ON -DNANODBC_DISABLE_EXAMPLES=ON -DNANODBC_DISABLE_TESTS=ON -DNANODBC_ODBC_VERSION=SQL_OV_ODBC3 -DCMAKE_INSTALL_PREFIX=TEMPLATE_INSTALL_PREFIX -DNANODBC_FORCE_LIBCXX=OFF -DNANODBC_DISABLE_LIBCXX=ON ..",
-            "cd build; make nanodbc install"
-        ],
-        "external_build_steps": [
-            "ls -l TEMPLATE_INSTALL_PREFIX/../* ; cp -rf TEMPLATE_INSTALL_PREFIX/../* ../../ ; ls -l ../../"
-        ],
-        "fpm_directories": ["include", "lib"],
-        "distro_dependencies": {
-            "rhel": {
-                "8": [
-                    "glibc",
-                    "libgcc",
-                    "libstdc++",
-                    "unixODBC"
-                ],
-                "9": [
-                    "glibc",
-                    "libgcc",
-                    "libstdc++",
-                    "unixODBC"
-                ]
-            },
-            "debian": {
-                "11": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6",
-                    "libodbc1"
-                ],
-                "12": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6",
-                    "libodbc2"
-                ]
-            },
-            "ubuntu": {
-                "20.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6",
-                    "libodbc1"
-                ],
-                "22.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6",
-                    "libodbc2"
-                ],
-                "24.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6",
-                    "libodbc2"
                 ]
             }
         }
@@ -1067,9 +335,6 @@
             "cd build; rm -f CMakeCache.txt;TEMPLATE_CMAKE_EXECUTABLE -G'Unix Makefiles' -DCMAKE_CXX_COMPILER=TEMPLATE_CLANGPP_EXECUTABLE -DCMAKE_C_COMPILER=TEMPLATE_CLANG_EXECUTABLE -DCMAKE_INSTALL_RPATH=/TEMPLATE_CLANG_RUNTIME_RPATH -DBUILD_SHARED_LIBS=ON -DNANODBC_DISABLE_EXAMPLES=ON -DNANODBC_DISABLE_TESTS=ON -DNANODBC_ODBC_VERSION=SQL_OV_ODBC3 -DCMAKE_INSTALL_PREFIX=TEMPLATE_INSTALL_PREFIX -DCMAKE_CXX_FLAGS='-ITEMPLATE_CLANG_CPP_HEADERS' -DCMAKE_EXE_LINKER_FLAGS='-stdlib=libc++ -LTEMPLATE_CLANG_CPP_LIBRARIES -lc++abi' -DCMAKE_SHARED_LINKER_FLAGS='-stdlib=libc++ -LTEMPLATE_CLANG_CPP_LIBRARIES -lc++abi' -DCMAKE_MODULE_LINKER_FLAGS='-stdlib=libc++ -LTEMPLATE_CLANG_CPP_LIBRARIES -lc++abi' ..",
             "cd build; make nanodbc install"
         ],
-        "external_build_steps": [
-            "ls -l TEMPLATE_INSTALL_PREFIX/../* ; cp -rf TEMPLATE_INSTALL_PREFIX/../* ../../ ; ls -l ../../"
-        ],
         "fpm_directories": ["include", "lib"],
         "interdependencies": [
             "clang-runtime"
@@ -1080,107 +345,6 @@
                     "glibc",
                     "libgcc",
                     "unixODBC"
-                ],
-                "9": [
-                    "glibc",
-                    "libgcc",
-                    "unixODBC"
-                ]
-            },
-            "debian": {
-                "11": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libodbc1"
-                ],
-                "12": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libodbc2"
-                ]
-            },
-            "ubuntu": {
-                "20.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libodbc1"
-                ],
-                "22.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libodbc2"
-                ],
-                "24.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libodbc2"
-                ]
-            }
-        }
-    },
-    "qpid-proton": {
-        "commitish": "0.36.0",
-        "version_string": "0.36.0",
-        "license": "Apache-2.0",
-        "consortium_build_number": "2",
-        "package_revision": "1",
-        "externals_root": "opt/irods-externals",
-        "build_steps": [
-            "mkdir -p build",
-            "cd build; TEMPLATE_CMAKE_EXECUTABLE -DCMAKE_CXX_COMPILER=TEMPLATE_CLANGPP_EXECUTABLE -DCMAKE_C_COMPILER=TEMPLATE_CLANG_EXECUTABLE -DENABLE_WARNING_ERROR=OFF -DCMAKE_BUILD_WITH_INSTALL_RPATH=True -DCMAKE_INSTALL_PREFIX=TEMPLATE_INSTALL_PREFIX -DCMAKE_INSTALL_RPATH=/TEMPLATE_QPID_PROTON_RPATH -DBUILD_JAVA=OFF -DBUILD_RUBY=OFF -DBUILD_PYTHON=OFF -DBUILD_GO=OFF -DBUILD_CPP=ON -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF -DENABLE_BENCHMARKS=OFF -DSYSINSTALL_BINDINGS=OFF -DENABLE_JSONCPP=OFF -DENABLE_LINKTIME_OPTIMIZATION=NO -DLIB_SUFFIX='' ..",
-            "cd build; make -jTEMPLATE_JOBS; make install"
-        ],
-        "external_build_steps": [
-            "ls -l TEMPLATE_INSTALL_PREFIX/../* ; cp -rf TEMPLATE_INSTALL_PREFIX/../* ../../ ; ls -l ../../"
-        ],
-        "fpm_directories": ["include", "lib"],
-        "distro_dependencies": {
-            "rhel": {
-                "8": [
-                    "glibc",
-                    "libgcc",
-                    "libstdc++",
-                    "openssl-libs"
-                ],
-                "9": [
-                    "glibc",
-                    "libgcc",
-                    "libstdc++",
-                    "openssl-libs"
-                ]
-            },
-            "debian": {
-                "11": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6",
-                    "libssl1.1"
-                ],
-                "12": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6",
-                    "libssl3"
-                ]
-            },
-            "ubuntu": {
-                "20.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6",
-                    "libssl1.1"
-                ],
-                "22.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6",
-                    "libssl3"
-                ],
-                "24.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6",
-                    "libssl3"
                 ]
             }
         }
@@ -1198,9 +362,6 @@
             "cd build; TEMPLATE_CMAKE_EXECUTABLE -DCMAKE_CXX_COMPILER=TEMPLATE_CLANGPP_EXECUTABLE -DCMAKE_C_COMPILER=TEMPLATE_CLANG_EXECUTABLE -DENABLE_WARNING_ERROR=OFF -DCMAKE_CXX_FLAGS='-nostdinc++ -ITEMPLATE_CLANG_CPP_HEADERS' -DCMAKE_SHARED_LINKER_FLAGS='-LTEMPLATE_CLANG_CPP_LIBRARIES -stdlib=libc++' -DCMAKE_EXE_LINKER_FLAGS='-LTEMPLATE_CLANG_CPP_LIBRARIES -stdlib=libc++' -DCMAKE_BUILD_WITH_INSTALL_RPATH=True -DCMAKE_INSTALL_PREFIX=TEMPLATE_INSTALL_PREFIX -DCMAKE_INSTALL_RPATH=/TEMPLATE_CLANG_RUNTIME_RPATH\\;/TEMPLATE_QPID_PROTON_LIBCXX_RPATH -DBUILD_JAVA=OFF -DBUILD_RUBY=OFF -DBUILD_PYTHON=OFF -DBUILD_GO=OFF -DBUILD_CPP=ON -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF -DENABLE_BENCHMARKS=OFF -DSYSINSTALL_BINDINGS=OFF -DENABLE_JSONCPP=OFF -DENABLE_LINKTIME_OPTIMIZATION=NO -DLIB_SUFFIX='' ..",
             "cd build; make -jTEMPLATE_JOBS; make install"
         ],
-        "external_build_steps": [
-            "ls -l TEMPLATE_INSTALL_PREFIX/../* ; cp -rf TEMPLATE_INSTALL_PREFIX/../* ../../ ; ls -l ../../"
-        ],
         "fpm_directories": ["include", "lib"],
         "interdependencies": [
             "clang-runtime"
@@ -1211,148 +372,6 @@
                     "glibc",
                     "libgcc",
                     "openssl-libs"
-                ],
-                "9": [
-                    "glibc",
-                    "libgcc",
-                    "openssl-libs"
-                ]
-            },
-            "debian": {
-                "11": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libssl1.1"
-                ],
-                "12": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libssl3"
-                ]
-            },
-            "ubuntu": {
-                "20.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libssl1.1"
-                ],
-                "22.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libssl3"
-                ],
-                "24.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libssl3"
-                ]
-            }
-        }
-    },
-    "redis": {
-        "commitish": "4.0.10",
-        "version_string": "4.0.10",
-        "license": "BSD-3-Clause",
-        "consortium_build_number": "0",
-        "package_revision": "4",
-        "externals_root": "opt/irods-externals",
-        "build_steps": [
-            "make -jTEMPLATE_JOBS",
-            "make install PREFIX=TEMPLATE_INSTALL_PREFIX"
-        ],
-        "external_build_steps": [
-            "ls -l TEMPLATE_INSTALL_PREFIX/../* ; cp -rf TEMPLATE_INSTALL_PREFIX/../* ../../ ; ls -l ../../"
-        ],
-        "fpm_directories": ["bin"],
-        "distro_dependencies": {
-            "rhel": {
-                "8": [
-                    "glibc"
-                ],
-                "9": [
-                    "glibc"
-                ]
-            },
-            "debian": {
-                "11": [
-                    "libc6"
-                ],
-                "12": [
-                    "libc6"
-                ]
-            },
-            "ubuntu": {
-                "20.04": [
-                    "libc6"
-                ],
-                "22.04": [
-                    "libc6"
-                ],
-                "24.04": [
-                    "libc6"
-                ]
-            }
-        }
-    },
-    "spdlog": {
-        "commitish": "v1.9.2",
-        "version_string": "1.9.2",
-        "license": "MIT",
-        "consortium_build_number": "2",
-        "package_revision": "1",
-        "externals_root": "opt/irods-externals",
-        "build_steps": [
-            "mkdir -p build",
-            "cd build; TEMPLATE_CMAKE_EXECUTABLE .. -G'Unix Makefiles' -DCMAKE_USER_MAKE_RULES_OVERRIDE=TEMPLATE_SCRIPT_PATH/ClangOverrides.txt -DCMAKE_CXX_COMPILER=TEMPLATE_CLANGPP_EXECUTABLE -DCMAKE_INSTALL_RPATH=/TEMPLATE_FMT_LIBCXX_RPATH -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=TEMPLATE_INSTALL_PREFIX -DCMAKE_INSTALL_LIBDIR=lib -Dfmt_DIR=TEMPLATE_FMT_PATH/lib/cmake/fmt -DSPDLOG_FMT_EXTERNAL=ON -DSPDLOG_BUILD_SHARED=ON -DSPDLOG_BUILD_BENCH=OFF -DSPDLOG_BUILD_EXAMPLE=OFF",
-            "cd build; make -jTEMPLATE_JOBS; make install"
-        ],
-        "external_build_steps": [
-            "ls -l TEMPLATE_INSTALL_PREFIX/../* ; cp -rf TEMPLATE_INSTALL_PREFIX/../* ../../ ; ls -l ../../"
-        ],
-        "fpm_directories": ["include","lib"],
-        "interdependencies": [
-            "fmt"
-        ],
-        "distro_dependencies": {
-            "rhel": {
-                "8": [
-                    "glibc",
-                    "libgcc",
-                    "libstdc++"
-                ],
-                "9": [
-                    "glibc",
-                    "libgcc",
-                    "libstdc++"
-                ]
-            },
-            "debian": {
-                "11": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6"
-                ],
-                "12": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6"
-                ]
-            },
-            "ubuntu": {
-                "20.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6"
-                ],
-                "22.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6"
-                ],
-                "24.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6"
                 ]
             }
         }
@@ -1370,9 +389,6 @@
             "cd build; TEMPLATE_CMAKE_EXECUTABLE .. -G'Unix Makefiles' -DCMAKE_USER_MAKE_RULES_OVERRIDE=TEMPLATE_SCRIPT_PATH/ClangOverrides.txt -DCMAKE_CXX_COMPILER=TEMPLATE_CLANGPP_EXECUTABLE -DCMAKE_INSTALL_RPATH=/TEMPLATE_CLANG_RUNTIME_RPATH\\;/TEMPLATE_FMT_LIBCXX_RPATH -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS='-nostdinc++ -ITEMPLATE_CLANG_CPP_HEADERS' -DCMAKE_SHARED_LINKER_FLAGS='-stdlib=libc++ -LTEMPLATE_CLANG_CPP_LIBRARIES -lc++abi' -DCMAKE_INSTALL_PREFIX=TEMPLATE_INSTALL_PREFIX -DCMAKE_INSTALL_LIBDIR=lib -Dfmt_DIR=TEMPLATE_FMT_LIBCXX_PATH/lib/cmake/fmt -DSPDLOG_FMT_EXTERNAL=ON -DSPDLOG_BUILD_SHARED=ON -DSPDLOG_BUILD_BENCH=OFF -DSPDLOG_BUILD_EXAMPLE=OFF",
             "cd build; make -jTEMPLATE_JOBS; make install"
         ],
-        "external_build_steps": [
-            "ls -l TEMPLATE_INSTALL_PREFIX/../* ; cp -rf TEMPLATE_INSTALL_PREFIX/../* ../../ ; ls -l ../../"
-        ],
         "fpm_directories": ["include","lib"],
         "interdependencies": [
             "clang-runtime",
@@ -1383,94 +399,6 @@
                 "8": [
                     "glibc",
                     "libgcc"
-                ],
-                "9": [
-                    "glibc",
-                    "libgcc"
-                ]
-            },
-            "debian": {
-                "11": [
-                    "libc6",
-                    "libgcc-s1"
-                ],
-                "12": [
-                    "libc6",
-                    "libgcc-s1"
-                ]
-            },
-            "ubuntu": {
-                "20.04": [
-                    "libc6",
-                    "libgcc-s1"
-                ],
-                "22.04": [
-                    "libc6",
-                    "libgcc-s1"
-                ],
-                "24.04": [
-                    "libc6",
-                    "libgcc-s1"
-                ]
-            }
-        }
-    },
-    "zeromq4-1": {
-        "commitish": "v4.1.8",
-        "version_string": "4.1.8",
-        "license": "LGPL-3.0-or-later",
-        "consortium_build_number": "1",
-        "package_revision": "1",
-        "externals_root": "opt/irods-externals",
-        "build_steps": [
-            "mkdir -p build",
-            "cd build; TEMPLATE_CMAKE_EXECUTABLE -G 'Unix Makefiles' -DCMAKE_INSTALL_PREFIX=TEMPLATE_INSTALL_PREFIX -DCMAKE_CXX_COMPILER=TEMPLATE_CLANGPP_EXECUTABLE -DCMAKE_C_COMPILER=TEMPLATE_CLANG_EXECUTABLE -DZMQ_BUILD_TESTS=OFF -DCMAKE_INSTALL_RPATH=/TEMPLATE_ZMQ_RPATH ..",
-            "cd build; make -jTEMPLATE_JOBS; make install"
-        ],
-        "external_build_steps": [
-            "ls -l TEMPLATE_INSTALL_PREFIX/../* ; cp -rf TEMPLATE_INSTALL_PREFIX/../* ../../ ; ls -l ../../"
-        ],
-        "fpm_directories": ["bin","include","lib"],
-        "distro_dependencies": {
-            "rhel": {
-                "8": [
-                    "glibc",
-                    "libgcc",
-                    "libstdc++"
-                ],
-                "9": [
-                    "glibc",
-                    "libgcc",
-                    "libstdc++"
-                ]
-            },
-            "debian": {
-                "11": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6"
-                ],
-                "12": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6"
-                ]
-            },
-            "ubuntu": {
-                "20.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6"
-                ],
-                "22.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6"
-                ],
-                "24.04": [
-                    "libc6",
-                    "libgcc-s1",
-                    "libstdc++6"
                 ]
             }
         }
@@ -1488,9 +416,6 @@
             "cd build; env LD_LIBRARY_PATH=TEMPLATE_CLANG_CPP_LIBRARIES TEMPLATE_CMAKE_EXECUTABLE -G 'Unix Makefiles' -DCMAKE_INSTALL_PREFIX=TEMPLATE_INSTALL_PREFIX -DCMAKE_CXX_COMPILER=TEMPLATE_CLANGPP_EXECUTABLE -DCMAKE_C_COMPILER=TEMPLATE_CLANG_EXECUTABLE -DCMAKE_CXX_FLAGS='-nostdinc++ -ITEMPLATE_CLANG_CPP_HEADERS' -DCMAKE_EXE_LINKER_FLAGS='-stdlib=libc++ -LTEMPLATE_CLANG_CPP_LIBRARIES -lc++abi' -DCMAKE_SHARED_LINKER_FLAGS='-stdlib=libc++ -LTEMPLATE_CLANG_CPP_LIBRARIES -lc++abi' -DCMAKE_MODULE_LINKER_FLAGS='-stdlib=libc++ -LTEMPLATE_CLANG_CPP_LIBRARIES -lc++abi' -DCMAKE_INSTALL_RPATH=/TEMPLATE_CLANG_RUNTIME_RPATH\\;/TEMPLATE_ZMQ_LIBCXX_RPATH -DZMQ_BUILD_TESTS=OFF ..",
             "cd build; make -jTEMPLATE_JOBS; make install"
         ],
-        "external_build_steps": [
-            "ls -l TEMPLATE_INSTALL_PREFIX/../* ; cp -rf TEMPLATE_INSTALL_PREFIX/../* ../../ ; ls -l ../../"
-        ],
         "fpm_directories": ["bin","include","lib"],
         "interdependencies": [
             "clang-runtime"
@@ -1500,36 +425,9 @@
                 "8": [
                     "glibc",
                     "libgcc"
-                ],
-                "9": [
-                    "glibc",
-                    "libgcc"
-                ]
-            },
-            "debian": {
-                "11": [
-                    "libc6",
-                    "libgcc-s1"
-                ],
-                "12": [
-                    "libc6",
-                    "libgcc-s1"
-                ]
-            },
-            "ubuntu": {
-                "20.04": [
-                    "libc6",
-                    "libgcc-s1"
-                ],
-                "22.04": [
-                    "libc6",
-                    "libgcc-s1"
-                ],
-                "24.04": [
-                    "libc6",
-                    "libgcc-s1"
                 ]
             }
         }
     }
 }
+
