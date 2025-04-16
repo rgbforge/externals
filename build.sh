@@ -1,6 +1,5 @@
 #!/bin/bash
 
-scl enable gcc-toolset-11 bash
 export IRODS_EXTERNALS_GCC_PREFIX="/opt/rh/gcc-toolset-11/root/usr"
 
 # Exit on error, treat unset variables as errors, disable globbing, fail pipelines on first error
