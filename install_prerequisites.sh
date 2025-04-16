@@ -28,6 +28,7 @@ procps \
 python3-distro \
 python3-setuptools \
 python3-devel \
+python3.11 \
 rpm-build \
 rsync \
 ruby-devel \
